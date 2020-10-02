@@ -59,11 +59,12 @@ float PID::get_control(point car_pose, point goal_pose){
 
     e_t = (float)(goal_th - car_th);
     error_diff = e_t - error;
-    error_sum += e_t;
+    //error_sum += e_t; // gyuri
     error = e_t;
 
     // final ctrl computation
     ctrl = Kp * error + Ki / rate * error_sum + Kd * rate * error_diff;
+    error_sum += e_t;  // gyuri
 
     /////////////////// MY CODE END ///////////////////
 

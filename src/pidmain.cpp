@@ -138,7 +138,8 @@ int main(int argc, char** argv){
 
         // check whether car reached the goal
         float dist = (car_pose.x - path[current_goal].x) * (car_pose.x - path[current_goal].x);
-        dist += (car_pose.y - path[current_goal].y) * (car_pose.x - path[current_goal].y);
+        dist += (car_pose.y - path[current_goal].y) * (car_pose.y - path[current_goal].y);	// gyuri(car_pose.x->car_pose.y)
+	dist = sqrt(dist); // gyuri(added)
 
         if(dist < 0.2){ // if distance is less than threshold(0.2m, you can change, refer to TODO instruction)
             current_goal += 1; // follow the next point on the path
@@ -151,7 +152,8 @@ int main(int argc, char** argv){
         
         // get ctrl value from pid_ctrl
         // argument: car_pose, path[current_goal] --> follow the path!
-        drive_msg_stamped.steering_angle = pid_ctrl.get_control(car_pose, path[current_goal]); 
+        drive_msg_stamped.drive.steering_angle = pid_ctrl.get_control(car_pose, path[current_goal]); // gyuri
+	car_ctrl_pub.publish(drive_msg_stamped); // gyuri
         
         /////////////////// MY CODE END ///////////////////
         
