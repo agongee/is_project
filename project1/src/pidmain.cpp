@@ -133,6 +133,27 @@ int main(int argc, char** argv){
          *    if distance is less than 0.2m (you can change this threshold), pursue next way point.
          * 4. check whether car reached final way point(end of path). if it is, terminate controller.
         */
+
+        /////////////////// MY CODE BEGIN ///////////////////
+
+        // check whether car reached the goal
+        float dist = (car_pose.x - path[current_goal].x) * (car_pose.x - path[current_goal].x);
+        dist += (car_pose.y - path[current_goal].y) * (car_pose.x - path[current_goal].y);
+
+        if(dist < 0.2){ // if distance is less than threshold(0.2m, you can change, refer to TODO instruction)
+            current_goal += 1; // follow the next point on the path
+            
+            if(current_goal == 9){ // if car reached the final point
+                break; // terminate
+            }
+
+        }
+        
+        // get ctrl value from pid_ctrl
+        // argument: car_pose, path[current_goal] --> follow the path!
+        drive_msg_stamped.steering_angle = pid_ctrl.get_control(car_pose, path[current_goal]); 
+        
+        /////////////////// MY CODE END ///////////////////
         
         ros::spinOnce();
         control_rate.sleep();
