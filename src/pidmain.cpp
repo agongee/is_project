@@ -52,7 +52,7 @@ int main(int argc, char** argv){
                 std::string("<collision>") +
                 std::string("<origin xyz=\"0 0 0\" rpy=\"0 0 0\" />") +
                 std::string("<geometry>") +
-                std::string("<sphere radius=\"0\"/>") +
+                std::string("<sphere radius=\"0.01\"/>") + //here from 0
                 std::string("</geometry>") +
                 std::string("</collision>") +
                 std::string("</link>") +
@@ -152,6 +152,7 @@ int main(int argc, char** argv){
         
         // get ctrl value from pid_ctrl
         // argument: car_pose, path[current_goal] --> follow the path!
+	drive_msg_stamped.drive.speed = 0.2;
         drive_msg_stamped.drive.steering_angle = pid_ctrl.get_control(car_pose, path[current_goal]); // gyuri
 	car_ctrl_pub.publish(drive_msg_stamped); // gyuri
         
