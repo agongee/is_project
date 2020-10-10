@@ -147,6 +147,10 @@ int main(int argc, char** argv){
             printf("=========== Goal changed: %d ===========\n", current_goal);
             
             if(current_goal == 9){ // if car reached the final point
+                drive_msg_stamped.drive.speed = 0;
+                drive_msg_stamped.drive.steering_angle = 0;
+                car_ctrl_pub.publish(drive_msg_stamped);
+                control_rate.sleep();
                 break; // terminate
             }
 

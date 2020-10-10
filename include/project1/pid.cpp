@@ -19,8 +19,8 @@ PID::PID(){
     // init gains 
     // THINK: You should adjust these values for precise control
     Kp = 1;
-    Ki = 0.07;
-    Kd = 0.08;
+    Ki = 0.05;
+    Kd = 0.05;
 
     /////////////////// MY CODE END ///////////////////
 
