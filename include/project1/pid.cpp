@@ -1,4 +1,5 @@
 #include <project1/pid.h>
+#include <stdio.h>
 
 PID::PID(){
 
@@ -17,9 +18,9 @@ PID::PID(){
 
     // init gains 
     // THINK: You should adjust these values for precise control
-    Kp = 0.1;
-    Ki = 0.1;
-    Kd = 0.1;
+    Kp = 1;
+    Ki = 0.5;
+    Kd = 0;
 
     /////////////////// MY CODE END ///////////////////
 
@@ -48,7 +49,11 @@ float PID::get_control(point car_pose, point goal_pose){
 
     goal_x = goal_pose.x;
     goal_y = goal_pose.y;
-    goal_th = goal_pose.th;
+    //goal_th = goal_pose.th;
+
+    goal_th = atan2((goal_y - car_y) , (goal_x - car_x));
+    printf("car_th: %.2f, goal_th: %.2f\n", car_th, goal_th);
+    
 
     // control rate: 10Hz (refer to pidmain.cpp)
     // THINK: Is it okay to regard control rate as a constant value? 
