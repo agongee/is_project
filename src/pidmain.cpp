@@ -158,6 +158,7 @@ int main(int argc, char** argv){
 
         // get ctrl value from pid_ctrl
         // argument: car_pose, path[current_goal] --> follow the path!
+<<<<<<< HEAD
 	    drive_msg_stamped.drive.speed = 0.4;
         //drive_msg_stamped.drive.steering_angle = pid_ctrl.get_control(car_pose, path[current_goal]); // gyuri
 	    float ctrl = pid_ctrl.get_control(car_pose, path[current_goal]);
@@ -167,6 +168,10 @@ int main(int argc, char** argv){
 		ctrl = -60.0;
 	    drive_msg_stamped.drive.steering_angle = ctrl;
 
+=======
+	    drive_msg_stamped.drive.speed = 0.2;
+        drive_msg_stamped.drive.steering_angle = pid_ctrl.get_control(car_pose, path[current_goal]); // gyuri
+>>>>>>> f2aa057375a04282b986a0fbdf4ab6979f9800f3
 	    car_ctrl_pub.publish(drive_msg_stamped); // gyuri
         
         /////////////////// MY CODE END ///////////////////
