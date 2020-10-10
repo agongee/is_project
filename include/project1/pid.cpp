@@ -19,8 +19,8 @@ PID::PID(){
     // init gains 
     // THINK: You should adjust these values for precise control
     Kp = 1;
-    Ki = 0.5;
-    Kd = 0;
+    Ki = 0.07;
+    Kd = 0.08;
 
     /////////////////// MY CODE END ///////////////////
 
@@ -52,7 +52,7 @@ float PID::get_control(point car_pose, point goal_pose){
     //goal_th = goal_pose.th;
 
     goal_th = atan2((goal_y - car_y) , (goal_x - car_x));
-    printf("car_th: %.2f, goal_th: %.2f\n", car_th, goal_th);
+    //printf("car_th: %.2f, goal_th: %.2f\n", car_th, goal_th);
     
 
     // control rate: 10Hz (refer to pidmain.cpp)
@@ -63,15 +63,23 @@ float PID::get_control(point car_pose, point goal_pose){
     float e_t; // temp error variable, for error difference computation
 
     e_t = (float)(goal_th - car_th);
+    if (e_t > M_PI){
+        e_t = -2 * M_PI + e_t;
+    }
+    else if(e_t < - M_PI){
+        e_t = 2 * M_PI + e_t;
+    }
+
     error_diff = e_t - error;
-    //error_sum += e_t; // gyuri
     error = e_t;
 
     // final ctrl computation
     ctrl = Kp * error + Ki / rate * error_sum + Kd * rate * error_diff;
-    error_sum += e_t;  // gyuri
 
+    error_sum += e_t;  
     /////////////////// MY CODE END ///////////////////
+
+    printf("e_t: %.2f\n", e_t);
 
 
     return ctrl;

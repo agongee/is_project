@@ -154,7 +154,7 @@ int main(int argc, char** argv){
 
         // get ctrl value from pid_ctrl
         // argument: car_pose, path[current_goal] --> follow the path!
-	    drive_msg_stamped.drive.speed = 1.0;
+	    drive_msg_stamped.drive.speed = 0.2;
         drive_msg_stamped.drive.steering_angle = pid_ctrl.get_control(car_pose, path[current_goal]); // gyuri
 	    car_ctrl_pub.publish(drive_msg_stamped); // gyuri
         
