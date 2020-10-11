@@ -134,47 +134,40 @@ int main(int argc, char** argv){
          * 4. check whether car reached final way point(end of path). if it is, terminate controller.
         */
 
-        /////////////////// MY CODE BEGIN ///////////////////
-
-        // check whether car reached the goal
+        // check whether car reached the goal by calculating distance
         float dist = (car_pose.x - path[current_goal].x) * (car_pose.x - path[current_goal].x);
-        dist += (car_pose.y - path[current_goal].y) * (car_pose.y - path[current_goal].y);	// gyuri(car_pose.x->car_pose.y)
-	    dist = sqrt(dist); // gyuri(added)
+        dist += (car_pose.y - path[current_goal].y) * (car_pose.y - path[current_goal].y);
+	    dist = sqrt(dist);
 
-        if(dist < 0.2){ // if distance is less than threshold(0.2m, you can change, refer to TODO instruction)
+        if(dist < 0.2){ // if distance is less than threshold
             current_goal += 1; // follow the next point on the path
-
-            printf("=========== Goal changed: %d ===========\n", current_goal);
             
             if(current_goal == 9){ // if car reached the final point
                 drive_msg_stamped.drive.speed = 0;
                 drive_msg_stamped.drive.steering_angle = 0;
                 car_ctrl_pub.publish(drive_msg_stamped);
                 control_rate.sleep();
-                break; // terminate
+                break; // terminate and stop the car
             }
 
         }
 
         // get ctrl value from pid_ctrl
         // argument: car_pose, path[current_goal] --> follow the path!
-<<<<<<< HEAD
+        // make sure the wheel does not break (by limiting the max steering angle)
 	    drive_msg_stamped.drive.speed = 0.4;
-        //drive_msg_stamped.drive.steering_angle = pid_ctrl.get_control(car_pose, path[current_goal]); // gyuri
-	    float ctrl = pid_ctrl.get_control(car_pose, path[current_goal]);
+	    
+        float ctrl = pid_ctrl.get_control(car_pose, path[current_goal]);
 	    if(ctrl > 60.0 * ctrl / 180.0) // if ctrl goes over 60 degrees
 		ctrl = 60.0;
 	    else if(ctrl < -60.0 * ctrl / 180.0) // if ctrl goes under -60 degrees
 		ctrl = -60.0;
-	    drive_msg_stamped.drive.steering_angle = ctrl;
+	    
+        drive_msg_stamped.drive.steering_angle = ctrl;
 
-=======
-	    drive_msg_stamped.drive.speed = 0.2;
-        drive_msg_stamped.drive.steering_angle = pid_ctrl.get_control(car_pose, path[current_goal]); // gyuri
->>>>>>> f2aa057375a04282b986a0fbdf4ab6979f9800f3
-	    car_ctrl_pub.publish(drive_msg_stamped); // gyuri
-        
-        /////////////////// MY CODE END ///////////////////
+        //publish
+
+	    car_ctrl_pub.publish(drive_msg_stamped);
         
         ros::spinOnce();
         control_rate.sleep();
