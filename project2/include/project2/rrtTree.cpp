@@ -3,8 +3,8 @@
 #include <ros/ros.h>
 #define PI 3.14159265358979323846
 
-double max_alpha = 0.2;
-double L = 0.325;
+double max_alpha = 0.2; // maximum steering angle of front wheels --> alpha is in -max_alpha ~ max_alpha
+double L = 0.325; // length of the RC car
 
 rrtTree::rrtTree() {
     count = 0;
@@ -12,7 +12,10 @@ rrtTree::rrtTree() {
     ptrTable[0] = NULL;
 }
 
-rrtTree::rrtTree(point x_init, point x_goal) {
+rrtTree::rrtTree(point x_init, point x_goal) { 
+
+    // This is already implemented, Just use in main.cpp
+
     this->x_init = x_init;
     this->x_goal = x_goal;
 
@@ -166,6 +169,10 @@ void rrtTree::visualizeTree(std::vector<traj> path){
 }
 
 void rrtTree::addVertex(point x_new, point x_rand, int idx_near, double alpha, double d) {
+
+    // add new vertex to tree
+    // tree is an array of the node
+
     //TODO
 }
 
@@ -174,14 +181,35 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
 }
 
 point rrtTree::randomState(double x_max, double x_min, double y_max, double y_min) {
+    
+    // randomly sample a point in a real world
+
     //TODO
+
+    point x_rand;
+
+    std::uniform_real_distribution<double> x_gen(x_min, x_max);
+    std::uniform_real_distribution<double> y_gen(y_min, y_max);
+
+
+
+
 }
 
 int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
+
+    
+
     //TODO
 }
 
 int rrtTree::nearestNeighbor(point x_rand) {
+
+    // find the closest point among existing nodes to x_rand
+    // just select the node with the shortest linear distance to x_rand
+    // return the index of the closest node
+
+
     //TODO
 }
 

@@ -2,5 +2,5 @@
 struct point{
 	double x;
 	double y;
-	double th;
+	double th; // heading angle of RC car on the point
 };

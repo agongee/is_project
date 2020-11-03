@@ -28,7 +28,7 @@ private:
 	    double d;
     }*root;
 
-    int count;
+    int count; // currently, i'm using it as "number of node in rrtTree"
     point x_init, x_goal;
     cv::Mat map;
     cv::Mat map_original;
