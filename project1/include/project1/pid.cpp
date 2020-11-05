@@ -1,4 +1,5 @@
 #include <project1/pid.h>
+#include <stdio.h>
 
 PID::PID(){
 
@@ -50,6 +51,8 @@ float PID::get_control(point car_pose, point goal_pose){
 
     // error computation and update
     float e_t; // temp error variable, for error difference computation
+
+    printf("car_th : %.2f,  goal_th : %.2f \n", goal_th, car_th);
 
     e_t = (float)(goal_th - car_th);
     if (e_t > M_PI){

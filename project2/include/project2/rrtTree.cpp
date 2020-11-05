@@ -199,7 +199,9 @@ void rrtTree::addVertex(point x_new, point x_rand, int idx_near, double alpha, d
 int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min, int K, double MaxStep) {
     //TODO
 
-    this->generator.seed(time(NULL));
+    //this->generator.seed(time(NULL));
+    // random init
+    std::srand(static_cast<unsigned int>(std::time(0)));
 
 
 
@@ -213,13 +215,8 @@ point rrtTree::randomState(double x_max, double x_min, double y_max, double y_mi
 
     point x_rand;
 
-    std::uniform_real_distribution<double> x_dist(x_min, x_max);
-    std::uniform_real_distribution<double> y_dist(y_min, y_max);
-
-    // TODO
-    // I don't know how it works...
-    x_rand.x = x_dist(this->random_gen);
-    x_rand.y = y_dist(this->random_gen);
+    x_rand.x = random_gen(x_min, x_max);
+    x_rand.y = random_gen(y_min, y_max);
     x_rand.th = atan(x_rand.y, x_rand.x); // ok?
 
     return x_rand;
@@ -272,14 +269,26 @@ int rrtTree::nearestNeighbor(point x_rand) {
 
 int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep) {
 
-    std::uniform_real_distribution<double> alpha_dist((-1) * max_alpha, max_alpha);
-    std::uniform_real_distribution<double> y_dist(y_min, y_max);
-
-
     //TODO
+
+    int min_scale = 10 // tune this parameter for minimum step ssize
+    int num_path = 50 // tune this parameter for number of sampling
+
+    double d = INT_MAX; 
+
+    for (int i = 0; i < num_path; i++){
+        double alpha = random_gen((-1) * max_alpha, max_alpha);
+    }
+
+
+    
 }
 
 bool rrtTree::isCollision(point x1, point x2, double d, double R) {
+
+    
+
+    
     //TODO
 }
 
@@ -290,4 +299,12 @@ std::vector<traj> rrtTree::backtracking_traj(){
 // TODO Check if its okay
 double distance(point p1, point p2){
     return sqrt(pos(p1.x - p2.x) + pow(p1.y - p2.y));
+}
+
+double random_gen(double min_val, double max_val){
+
+    static const double fraction = 1.0 / (RAND_MAX + 1.0);
+
+    return min_val + (max_val - min_val + 1.0) * static_cast<double>(std::rand()) * fraction;
+    
 }

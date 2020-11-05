@@ -35,10 +35,7 @@ private:
     double map_origin_x, map_origin_y;
     double res;
     node *ptrTable[20000];
-
-    // Added
-    std::default_random_engine random_gen;
-
+    
     cv::Mat addMargin(cv::Mat map, int margin);
     void addVertex(point x_new, point x_rand, int idx_near, double alpha, double d);
     int nearestNeighbor(point x_rand, double MaxStep);
@@ -60,3 +57,4 @@ public:
 };
 
 double distance(point p1, point p2);
+double random_gen(double min_val, double max_val);
