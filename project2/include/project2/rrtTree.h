@@ -36,6 +36,9 @@ private:
     double res;
     node *ptrTable[20000];
 
+    // Added
+    std::default_random_engine random_gen;
+
     cv::Mat addMargin(cv::Mat map, int margin);
     void addVertex(point x_new, point x_rand, int idx_near, double alpha, double d);
     int nearestNeighbor(point x_rand, double MaxStep);
@@ -55,3 +58,5 @@ public:
     int generateRRT(double x_max, double x_min, double y_max, double y_min, int K, double MaxStep);
     std::vector<traj> backtracking_traj();
 };
+
+double distance(point p1, point p2);

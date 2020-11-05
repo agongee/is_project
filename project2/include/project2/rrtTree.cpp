@@ -3,6 +3,8 @@
 #include <ros/ros.h>
 #define PI 3.14159265358979323846
 
+#define MAX_TABLE 20000
+
 double max_alpha = 0.2; // maximum steering angle of front wheels --> alpha is in -max_alpha ~ max_alpha
 double L = 0.325; // length of the RC car
 
@@ -173,31 +175,64 @@ void rrtTree::addVertex(point x_new, point x_rand, int idx_near, double alpha, d
     // add new vertex to tree
     // tree is an array of the node
 
-    //TODO
+    //TODO Check if its okay
+
+    if (this->count == MAX_TABLE){
+        std::cout << "error: Full Table" << std::endl;
+        return;
+    }
+
+    node *new_node = new node;
+
+    new_node->location = x_new;
+    new_node->rand = x_rand;
+    new_node->idx_parent = idx_near;
+    new_node->alpha = alpha;
+    new_node->d = d;
+    new_node->idx = this->count;
+    this->count++;
+
+    ptrTable[new_node->idx] = new_node;
+    
 }
 
 int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min, int K, double MaxStep) {
     //TODO
+
+    this->generator.seed(time(NULL));
+
+
+
 }
 
 point rrtTree::randomState(double x_max, double x_min, double y_max, double y_min) {
     
     // randomly sample a point in a real world
 
-    //TODO
+    //TODO Check if its okay
 
     point x_rand;
 
-    std::uniform_real_distribution<double> x_gen(x_min, x_max);
-    std::uniform_real_distribution<double> y_gen(y_min, y_max);
+    std::uniform_real_distribution<double> x_dist(x_min, x_max);
+    std::uniform_real_distribution<double> y_dist(y_min, y_max);
 
+    // TODO
+    // I don't know how it works...
+    x_rand.x = x_dist(this->random_gen);
+    x_rand.y = y_dist(this->random_gen);
+    x_rand.th = atan(x_rand.y, x_rand.x); // ok?
 
-
+    return x_rand;
 
 }
 
 int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
 
+    // find the closest point among existing nodes to x_rand
+    // its different with nearestNeighbor(point x_rand)
+    // you should consider the difference of the angle!
+    // --> new constraint: theata < theta_max
+    // TODO: How to get theta_max from MaxStep?
     
 
     //TODO
@@ -209,11 +244,38 @@ int rrtTree::nearestNeighbor(point x_rand) {
     // just select the node with the shortest linear distance to x_rand
     // return the index of the closest node
 
+    //TODO Check if its okay
 
-    //TODO
+    int min_idx;
+    double min_dist;
+
+    // Compute dist with first node
+    min_dist = distance(x_rand, ptrTable[0]->location);
+    min_idx = 0;
+
+    // iterate over all nodes and find min idx
+    for (int i = 1; i < this->count; i++){
+        if (this->ptrTable[i] == NULL){
+            continue;
+        }
+
+        double dist = distance(x_rand, ptrTable[i]->location);
+        if (dist < min_dist){
+            min_dist = dist;
+            min_idx = i;
+        }
+    }
+
+    return min_dix;
+
 }
 
 int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep) {
+
+    std::uniform_real_distribution<double> alpha_dist((-1) * max_alpha, max_alpha);
+    std::uniform_real_distribution<double> y_dist(y_min, y_max);
+
+
     //TODO
 }
 
@@ -223,4 +285,9 @@ bool rrtTree::isCollision(point x1, point x2, double d, double R) {
 
 std::vector<traj> rrtTree::backtracking_traj(){
     //TODO
+}
+
+// TODO Check if its okay
+double distance(point p1, point p2){
+    return sqrt(pos(p1.x - p2.x) + pow(p1.y - p2.y));
 }
