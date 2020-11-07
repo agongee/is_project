@@ -189,7 +189,7 @@ void rrtTree::addVertex(point x_new, point x_rand, int idx_near, double alpha, d
     new_node->idx_parent = idx_near;
     new_node->alpha = alpha;
     new_node->d = d;
-    new_node->idx = this->count;
+    new_node->idx = this->count;	
     this->count++;
 
     ptrTable[new_node->idx] = new_node;
@@ -217,7 +217,8 @@ point rrtTree::randomState(double x_max, double x_min, double y_max, double y_mi
 
     x_rand.x = random_gen(x_min, x_max);
     x_rand.y = random_gen(y_min, y_max);
-    x_rand.th = atan(x_rand.y, x_rand.x); // ok?
+    // x_rand.th = atan(x_rand.y, x_rand.x); // ok?
+    x_rand.th = random_gen(0, 2*PI); // ok??????
 
     return x_rand;
 
@@ -233,6 +234,8 @@ int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
     
 
     //TODO
+
+    // x_rand: x_rand.x, x_rand.y, x_rand.th
 }
 
 int rrtTree::nearestNeighbor(point x_rand) {
@@ -263,7 +266,7 @@ int rrtTree::nearestNeighbor(point x_rand) {
         }
     }
 
-    return min_dix;
+    return min_idx;
 
 }
 
@@ -273,32 +276,128 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
 
     int min_scale = 10 // tune this parameter for minimum step ssize
     int num_path = 50 // tune this parameter for number of sampling
+    traj paths[50]; // size should be num_path
 
-    double d = INT_MAX; 
+    double alpha, d; //alpha, d of closest path
 
+    //double d = INT_MAX; 
+
+
+    // first, create some random paths
     for (int i = 0; i < num_path; i++){
-        double alpha = random_gen((-1) * max_alpha, max_alpha);
+        //double alpha = random_gen((-1) * max_alpha, max_alpha);
+	//double d = random_gen(0, MaxStep);
+        paths[i].x = x_rand.x;
+	paths[i].y = x_rand.y;
+	paths[i].th = x_rand.th;
+	paths[i].d = random_gen(0, MaxStep);
+	paths[i].alpha = random_gen((-1) * max_alpha, max_alpha);
     }
 
 
+    // second, choose the path closest to x_rand(set x_new and alpha, d)
+    int min_idx = -1;
+    double min_dist = -1;
+
+    for (int i = 0; i < num_path; i++){
+	point x_tmp; // x_new candidate
+	double x_c = x_near - paths[i].d/paths[i].alpha * sin(x_near.th);
+	double y_c = x_near + paths[i].d/paths[i].alpha * cos(x_near.th);
+	x_tmp.th = x_near.th + paths[i].alpha;
+	x_tmp.x = x_c + paths[i].d/paths[i].alpha * sin(x_tmp.th);
+	x_tmp.y = y_c - paths[i].d/paths[i].alpha * cos(x_tmp.th);
+	if (i == 0) {
+	    min_idx = i;
+	    min_dist = distance(x_rand, x_tmp);
+	}
+	else {
+	    if (distance(x_rand, x_tmp) < min_dist) {
+		min_idx = i;
+		min_dist = distance(x_rand, x_temp);
+	    }
+	}
+    }
+    point x_new;
+    x_new.x = paths[min_idx].x;
+    x_new.y = paths[min_idx].y;
+    x_new.th = paths[min_idx].th;
+    alpha = paths[min_idx].alpha;
+    d = paths[min_idx].d;
+
+    
+    // third, set out[] and check collision of chosen path
+    out[0] = x_new.x;
+    out[1] = x_new.y;
+    out[2] = x_new.th;
+    out[3] = alpha;
+    out[4] = d;
+    return isCollision(x_near, x_new, d, d/alpha);
     
 }
 
-bool rrtTree::isCollision(point x1, point x2, double d, double R) {
+bool rrtTree::isCollision(point x1, point x2, double d, double R) {	// ???????????? right..? ???????????
 
-    
+    // whether path x1->x2 (not straight line, but 'path') crosses the obstacle
+    // refer to page5(pdf) for the names of variables
 
+    double beta = d / R;
+    double x_c = x1.x - R * sin(x1.th)
+    double y_c = x1.y + R * cos(x1.th)
+
+    double th_temp = x1.th;
+    for(int i = 0; i < ceil((x2.th-x1.th)/beta); i++){
+
+      th_temp = th_temp + beta;
+      x_n = x_c + R * sin(th_temp);
+      y_n = y_c - R * cos(th_temp);
+
+      if ( map_margin.at<uchar>((x_n/this->res) + this->map_origin_x, (y_n/this->res) + this->map_origin_y) == 0 ) // if occupied, collision
+        return true;
+
+    }
+
+    return false;
     
-    //TODO
+    
+    // memo: unknown region not considered - what to do..?
+    
+    //TODO Check if its okay..
 }
 
 std::vector<traj> rrtTree::backtracking_traj(){
     //TODO
+    vector<traj> result;
+    
+    int curr_idx = nearestNeightbor(this->x_goal, maxstep)); // maxstep...????????? & should choose among leaf nodes, but not considered yet!!!!
+    while(curr_idx != 0){
+
+	traj tmp_t;		// temporary trajectory
+	tmp_t.x = this->ptrTable[curr_idx]->location.x;
+	tmp_t.y = this->ptrTable[curr_idx]->location.y;
+	tmp_t.th = this->ptrTable[curr_idx]->location.th;
+	tmp_t.alpha = this->ptrTable[curr_idx]->alpha;
+	tmp_t.d = this->ptrTable[curr_idx]->d;
+	result.push_back(tmp_t);
+
+	point tmp_p;	// temporary point
+	tmp_p.x = tmp_t.x;
+	tmp_p.y = tmp_t.y;
+	tmp_p.th = tmp_t.th;
+	curr_idx = nearestNeighbor(tmp_p, maxstep);	// should choose among parents, but not considered yet!!!!
+    }
+    
+    return result;	// doesnt contain root currently, but should it?
+    
+    
+    
+    
 }
 
 // TODO Check if its okay
 double distance(point p1, point p2){
-    return sqrt(pos(p1.x - p2.x) + pow(p1.y - p2.y));
+
+    return sqrt(pow(p1.x - p2.x) + pow(p1.y - p2.y));
+
 }
 
 double random_gen(double min_val, double max_val){
