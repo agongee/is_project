@@ -203,13 +203,41 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
     // random init
     std::srand(static_cast<unsigned int>(std::time(0)));
 
-    
+    double dist_threshold = 0.5; 
+    // tune this parameter
+    // if the distance between the added node and the goal is lower than this value,
+    // stop iteration
 
+    // iterate over K
+    for(int i = 0; i < K; i++){
 
+        this->visualizeTree();
 
+        // 1. generate x_rand
+        point x_rand = this->randomState(x_max, x_min, y_max, y_min);
 
+        // 2. find x_near corresponding to x_rand
+        int x_near_idx = this->nearestNeighbor(x_rand, MaxStep);
+        if (x_near_idx < 0 || ptrTable[x_near_idx] == NULL){
+            continue;
+        }
+        point x_near = ptrTable[x_near_idx]->location;
 
+        // 3. find x_new corresponding to x_rand and x_near, and add
+        double out [5];
+        int valid = this->randompath(out, x_near, x_rand, MaxStep);
+        if(valid == 0){ // collision happened
+            continue;
+        }
+        point x_new = {out[0], out[1], out[2]};
 
+        this->addVertex(x_new, x_rand, out[3], out[4]);
+
+        // 4. check, if the tree reached the goal
+        if (distance(x_new, x_goal) < dist_threshold){
+            break;
+        }
+    }
 }
 
 point rrtTree::randomState(double x_max, double x_min, double y_max, double y_min) {
@@ -335,7 +363,7 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
     out[2] = x_new.th;
     out[3] = alpha;
     out[4] = d;
-    return isCollision(x_near, x_new, d, d/alpha);
+    return int(isCollision(x_near, x_new, d, d/alpha));
     
 }
 
