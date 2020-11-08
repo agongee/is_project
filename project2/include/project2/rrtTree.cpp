@@ -170,12 +170,12 @@ void rrtTree::visualizeTree(std::vector<traj> path){
     cv::waitKey(1);
 }
 
+
+// Done
 void rrtTree::addVertex(point x_new, point x_rand, int idx_near, double alpha, double d) {
 
     // add new vertex to tree
     // tree is an array of the node
-
-    //TODO Check if its okay
 
     if (this->count == MAX_TABLE){
         std::cout << "error: Full Table" << std::endl;
@@ -203,6 +203,11 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
     // random init
     std::srand(static_cast<unsigned int>(std::time(0)));
 
+    
+
+
+
+
 
 
 }
@@ -217,7 +222,7 @@ point rrtTree::randomState(double x_max, double x_min, double y_max, double y_mi
 
     x_rand.x = random_gen(x_min, x_max);
     x_rand.y = random_gen(y_min, y_max);
-    // x_rand.th = atan(x_rand.y, x_rand.x); // ok?
+    // x_rand.th = atan2(x_rand.y, x_rand.x); // ok?
     x_rand.th = random_gen(0, 2*PI); // ok??????
 
     return x_rand;
@@ -238,13 +243,12 @@ int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
     // x_rand: x_rand.x, x_rand.y, x_rand.th
 }
 
+// Done
 int rrtTree::nearestNeighbor(point x_rand) {
 
     // find the closest point among existing nodes to x_rand
     // just select the node with the shortest linear distance to x_rand
     // return the index of the closest node
-
-    //TODO Check if its okay
 
     int min_idx;
     double min_dist;
@@ -286,12 +290,12 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
     // first, create some random paths
     for (int i = 0; i < num_path; i++){
         //double alpha = random_gen((-1) * max_alpha, max_alpha);
-	//double d = random_gen(0, MaxStep);
+	    //double d = random_gen(0, MaxStep);
         paths[i].x = x_rand.x;
-	paths[i].y = x_rand.y;
-	paths[i].th = x_rand.th;
-	paths[i].d = random_gen(0, MaxStep);
-	paths[i].alpha = random_gen((-1) * max_alpha, max_alpha);
+        paths[i].y = x_rand.y;
+        paths[i].th = x_rand.th;
+        paths[i].d = random_gen(0, MaxStep);
+        paths[i].alpha = random_gen((-1) * max_alpha, max_alpha);
     }
 
 
@@ -300,12 +304,12 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
     double min_dist = -1;
 
     for (int i = 0; i < num_path; i++){
-	point x_tmp; // x_new candidate
-	double x_c = x_near - paths[i].d/paths[i].alpha * sin(x_near.th);
-	double y_c = x_near + paths[i].d/paths[i].alpha * cos(x_near.th);
-	x_tmp.th = x_near.th + paths[i].alpha;
-	x_tmp.x = x_c + paths[i].d/paths[i].alpha * sin(x_tmp.th);
-	x_tmp.y = y_c - paths[i].d/paths[i].alpha * cos(x_tmp.th);
+        point x_tmp; // x_new candidate
+        double x_c = x_near - paths[i].d/paths[i].alpha * sin(x_near.th);
+        double y_c = x_near + paths[i].d/paths[i].alpha * cos(x_near.th);
+        x_tmp.th = x_near.th + paths[i].alpha;
+        x_tmp.x = x_c + paths[i].d/paths[i].alpha * sin(x_tmp.th);
+        x_tmp.y = y_c - paths[i].d/paths[i].alpha * cos(x_tmp.th);
 	if (i == 0) {
 	    min_idx = i;
 	    min_dist = distance(x_rand, x_tmp);
@@ -387,13 +391,10 @@ std::vector<traj> rrtTree::backtracking_traj(){
     }
     
     return result;	// doesnt contain root currently, but should it?
-    
-    
-    
+
     
 }
 
-// TODO Check if its okay
 double distance(point p1, point p2){
 
     return sqrt(pow(p1.x - p2.x) + pow(p1.y - p2.y));
