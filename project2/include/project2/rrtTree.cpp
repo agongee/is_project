@@ -197,13 +197,43 @@ void rrtTree::addVertex(point x_new, point x_rand, int idx_near, double alpha, d
 }
 
 int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min, int K, double MaxStep) {
-    //TODO
+    //TODO: check if its okay
 
     //this->generator.seed(time(NULL));
     // random init
     std::srand(static_cast<unsigned int>(std::time(0)));
 
-    
+    double dist_thresh = 0.5;
+    int it = 0; // iteration : minimum K
+    double closest_dist = distance(x_init, x_goal);	// current closest distance from a node to goal
+    while ( it < K || closest_dist > dist_thresh ){		
+
+	// step 1
+	point x_rand = randomState(x_max, x_min, y_max, y_min);
+
+	// step 2
+	int idx_near = nearestNeighbor(x_rand, MaxStep);
+	if (idx_near < 0 || ptrTable[idx_near] == NULL)
+	    continue;
+	point x_near = ptrTable[idx_near]->location;
+
+	// step 3
+	double out[5];
+	bool valid = randompath(out, x_near, x_rand, MaxStep);
+	if (!valid)
+	    continue;
+	point x_new = {out[0], out[1], out[2]};
+
+	// step 4
+	addVertex(x_new, x_rand, idx_near, out[3], out[4]);
+
+	// update loop conditions
+	if (distance(x_new, x_goal) < closest_dist)
+	    closest_dist = distance(x_new, x_goal);
+	it++;
+	
+
+    }
 
 
 
@@ -287,10 +317,8 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
     //double d = INT_MAX; 
 
 
-    // first, create some random paths
+    // first, create some random paths starting from x_near
     for (int i = 0; i < num_path; i++){
-        //double alpha = random_gen((-1) * max_alpha, max_alpha);
-	    //double d = random_gen(0, MaxStep);
         paths[i].x = x_rand.x;
         paths[i].y = x_rand.y;
         paths[i].th = x_rand.th;
@@ -349,7 +377,7 @@ bool rrtTree::isCollision(point x1, point x2, double d, double R) {	// ?????????
     double y_c = x1.y + R * cos(x1.th)
 
     double th_temp = x1.th;
-    for(int i = 0; i < ceil((x2.th-x1.th)/beta); i++){
+    for(int i = 0; i < ceil((x2.th-x1.th)/beta)-1; i++){	// point x2 not considered - need to check x2?
 
       th_temp = th_temp + beta;
       x_n = x_c + R * sin(th_temp);

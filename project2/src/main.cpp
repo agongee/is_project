@@ -247,12 +247,13 @@ int main(int argc, char** argv){
 	    */
 
 	    // step 1 (incomplete)
-	    >????????????????
-	    setcmdvel(what velocity???, what angle???);
+	    float v = 1.0; 	// ?????? what value..?
+	    float w = PID::get_control(robot_pose, waypoints[look_ahead_idx + 1];	// im not sure if robot_pose indicates current car pose
+	    setcmdvel(v, w);
 	    // step 2
             cmd_vel_pub.publish(cmd);
 	    // step 3
-	    if (sqrt(pow(robot_pose.x - waypoints[look_ahead_idx+1].x, 2) + pow(robot_pose.y - waypoints[look_ahead_idx + 1].y, 2)) < 0.2)
+	    if (sqrt(pow(robot_pose.x - waypoints[look_ahead_idx + 1].x, 2) + pow(robot_pose.y - waypoints[look_ahead_idx + 1].y, 2)) < 0.2)
 		look_ahead_idx++;
 	    if (look_ahead_idx == waypoints.size())
 		state = FINIISH;
