@@ -203,10 +203,13 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
     // random init
     std::srand(static_cast<unsigned int>(std::time(0)));
 
-    double dist_thresh = 0.5;
-    int it = 0; // iteration : minimum K
+    double dist_thresh = 0.5;				// tune this parameter
+    int it = 0;						// iteration : minimum K
     double closest_dist = distance(x_init, x_goal);	// current closest distance from a node to goal
+
     while ( it < K || closest_dist > dist_thresh ){		
+
+	visualizeTree();
 
 	// step 1
 	point x_rand = randomState(x_max, x_min, y_max, y_min);
@@ -231,15 +234,8 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
 	if (distance(x_new, x_goal) < closest_dist)
 	    closest_dist = distance(x_new, x_goal);
 	it++;
-	
 
     }
-
-
-
-
-
-
 }
 
 point rrtTree::randomState(double x_max, double x_min, double y_max, double y_min) {
@@ -363,7 +359,7 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
     out[2] = x_new.th;
     out[3] = alpha;
     out[4] = d;
-    return isCollision(x_near, x_new, d, d/alpha);
+    return int(isCollision(x_near, x_new, d, d/alpha));
     
 }
 
