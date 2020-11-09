@@ -2,7 +2,7 @@
 struct traj{
 
 	/*
-		Not only the poistion of the RC car (struct point), but also how the RC car reach to the position
+		Not only the position of the RC car (struct point), but also how the RC car reach to the position
 	*/ 
 
 	double x;

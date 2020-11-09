@@ -316,10 +316,10 @@ void generate_path_RRT()
         // Check plz
         std::vector<traj> temp_path = tree.backtracking_traj();
 
-        temp_path.pop_back(); // skip first point
+        // temp_path.pop_back(); // skip first point
         for(int j = 0; j < temp_path.size(); j++){  
             path_RRT.push_back(temp_path.back());
-            path_RRT.pop_back();
+            temp_path.pop_back();
         }
     }
 

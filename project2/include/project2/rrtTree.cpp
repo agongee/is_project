@@ -260,13 +260,35 @@ int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
     // find the closest point among existing nodes to x_rand
     // its different with nearestNeighbor(point x_rand)
     // you should consider the difference of the angle!
-    // --> new constraint: theata < theta_max
+    // --> new constraint: theta < theta_max
     // TODO: How to get theta_max from MaxStep?
     
 
     //TODO
 
     // x_rand: x_rand.x, x_rand.y, x_rand.th
+    double R = L / tan(max_alpha)
+    double max_beta = MaxStep / R
+    double theta_max = x_rand.th + max_beta
+
+    // ptrTable: int idx, point rand, point location, int idx_parent, double alpha, double d
+
+    double min_dist = distance(x_rand, ptrTable[0]->location);
+    int min_idx = 0;
+
+    for (int i = 1; i < this->count; i++){
+        if (this->ptrTable[i] == NULL){
+            continue;
+        }
+
+        double dist = distance(x_rand, ptrTable[i]->location);
+        double theta_itr = (ptrTable[i]->d)/ (L/tan(ptrTable[i]->alpha)) + ptrTable[i]->location.theta
+        if ((dist < min_dist) && (theta_itr < theta_max)){
+            min_dist = dist;
+            min_idx = i;
+        }
+    }
+
 }
 
 // Done
@@ -376,29 +398,26 @@ bool rrtTree::isCollision(point x1, point x2, double d, double R) {	// ?????????
     for(int i = 0; i < ceil((x2.th-x1.th)/beta)-1; i++){	// point x2 not considered - need to check x2?
 
       th_temp = th_temp + beta;
-      x_n = x_c + R * sin(th_temp);
-      y_n = y_c - R * cos(th_temp);
+      double x_n = x_c + R * sin(th_temp);
+      double y_n = y_c - R * cos(th_temp);
 
-      if ( map_margin.at<uchar>((x_n/this->res) + this->map_origin_x, (y_n/this->res) + this->map_origin_y) == 0 ) // if occupied, collision
+      if ( map_margin.at<uchar>(int((x_n/this->res) + this->map_origin_x), int((y_n/this->res) + this->map_origin_y)) == 0 ) // if occupied, collision
         return true;
-
     }
 
+    if (map_margin.at<uchar>(int((x2.x/this->res) + this->map_origin_x), int((x2.y/this->res) + this->map_origin_y)) == 0){
+        return true;
+    }
     return false;
-    
-    
-    // memo: unknown region not considered - what to do..?
-    
-    //TODO Check if its okay..
+    // memo: unknown region not considered
 }
 
 std::vector<traj> rrtTree::backtracking_traj(){
     //TODO
     std::vector<traj> result;
     
-    int curr_idx = this->nearestNeightbor(this->x_goal, maxstep)); // maxstep...????????? & should choose among leaf nodes, but not considered yet!!!!
-    while(curr_idx != 0){
-
+    int curr_idx = this->nearestNeighbor(this->x_goal);
+    while (curr_idx != 0){
 	traj tmp_t;		// temporary trajectory
 	tmp_t.x = this->ptrTable[curr_idx]->location.x;
 	tmp_t.y = this->ptrTable[curr_idx]->location.y;
@@ -411,7 +430,7 @@ std::vector<traj> rrtTree::backtracking_traj(){
 	tmp_p.x = tmp_t.x;
 	tmp_p.y = tmp_t.y;
 	tmp_p.th = tmp_t.th;
-	curr_idx = nearestNeighbor(tmp_p, maxstep);	// should choose among parents, but not considered yet!!!!
+	curr_idx = this->ptrTable[curr_idx]->idx_parent;	// should choose among parents, but not considered yet!!!!
     }
     
     return result;	// doesnt contain root currently, but should it?
