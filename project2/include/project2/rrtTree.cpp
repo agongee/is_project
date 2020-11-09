@@ -372,7 +372,7 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
         }
       }
     }
-    
+
     point x_new;
     x_new.x = paths[min_idx].x;
     x_new.y = paths[min_idx].y;
