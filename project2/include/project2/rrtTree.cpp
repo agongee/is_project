@@ -372,7 +372,7 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
         }
       }
     }
-    
+
     point x_new;
     x_new.x = paths[min_idx].x;
     x_new.y = paths[min_idx].y;
@@ -387,7 +387,7 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
     out[2] = x_new.th;
     out[3] = alpha;
     out[4] = d;
-    return int(isCollision(x_near, x_new, d, d/alpha));
+    return int(isCollision(x_near, x_new, d, L/tan(out[3])));
     
 }
 
