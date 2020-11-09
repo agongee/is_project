@@ -108,10 +108,18 @@ int main(int argc, char** argv){
     int look_ahead_idx;
     ros::Rate control_rate(60);
 
+    double speed = 1.0; // velocity, auto-tune by distance
+    point current_goal;
+    PID pid_ctrl;
+    
+
     while(running){
         switch (state) {
         case INIT: {
             look_ahead_idx = 0;
+            current_goal.x = path_RRT[look_ahead_idx].x;
+            current_goal.y = path_RRT[look_ahead_idx].y;
+            current_goal.th = path_RRT[look_ahead_idx].th;
 	        printf("path size : %d\n", path_RRT.size());
             //visualize path
 	        ros::spinOnce();
@@ -234,39 +242,43 @@ int main(int argc, char** argv){
         } break;
 
         case RUNNING: {
-	    //TODO
-	    /*
-		1. make control following point in the variable "path_RRT"
-			use function setcmdvel(double v, double w) which set cmd_vel as desired input value.
-		2. publish
-		3. check distance between robot and current goal point
-		4. if distance is less than 0.2 (update next goal point) (you can change the distance if you want)
-			look_ahead_idx++
-		5. if robot reach the final goal
-			finish RUNNING (state = FINISH)
-	    */
+            //TODO
+            /*
+                1. make control following point in the variable "path_RRT"
+                    use function setcmdvel(double v, double w) which set cmd_vel as desired input value.
+                2. publish
+                3. check distance between robot and current goal point
+                4. if distance is less than 0.2 (update next goal point) (you can change the distance if you want)
+                    look_ahead_idx++
+                5. if robot reach the final goal
+                    finish RUNNING (state = FINISH)
+            */
 
-	    // step 1 (incomplete)
-<<<<<<< HEAD
-	    float v = 1.0; 	// ?????? what value..?
-	    float w = PID::get_control(robot_pose, waypoints[look_ahead_idx + 1];	// im not sure if robot_pose indicates current car pose
-	    setcmdvel(v, w);
-	    // step 2
+            // step 1 (incomplete)
+            double ctrl = pid_ctrl.get_control(robot_pose, current_goal);
+            if(ctrl > 60.0 * M_PI / 180.0) // if ctrl goes over 60 degrees
+                ctrl = 60.0 * M_PI / 180.0;
+            else if(ctrl < -60.0 * M_PI / 180.0) // if ctrl goes under -60 degrees
+                ctrl = -60.0 * M_PI / 180.0;
+            
+            setcmdvel(speed, ctrl);
+
+            // step 2
             cmd_vel_pub.publish(cmd);
-	    // step 3
-	    if (sqrt(pow(robot_pose.x - waypoints[look_ahead_idx + 1].x, 2) + pow(robot_pose.y - waypoints[look_ahead_idx + 1].y, 2)) < 0.2)
-		look_ahead_idx++;
-=======
-	    // ????????????????
-	    setcmdvel(what velocity???, what angle???);
-	    // step 2
-            cmd_vel_pub.publish(cmd);
-	    // step 3
-	    if (sqrt(pow(robot_pose.x - waypoints[look_ahead_idx+1].x, 2) + pow(robot_pose.y - waypoints[look_ahead_idx + 1].y, 2)) < 0.2)
-		    look_ahead_idx++;
->>>>>>> 71e596407b3a823a3de5f56150780515dc7240bc
-	    if (look_ahead_idx == waypoints.size())
-		    state = FINIISH;
+
+            // step 3
+            if(distance(robot_pose, current_goal) < 0.2){
+                look_ahead_idx++;
+                current_goal.x = path_RRT[look_ahead_idx].x;
+                current_goal.y = path_RRT[look_ahead_idx].y;
+                current_goal.th = path_RRT[look_ahead_idx].th;
+                speed = 0.1;
+            }
+            else{
+                speed = 1.0;
+            }
+            if (look_ahead_idx == path_RRT.size())
+                state = FINISH;
 	    
         } break;
 
@@ -309,6 +321,7 @@ void generate_path_RRT()
             path_RRT.push_back(temp_path.back());
             path_RRT.pop_back();
         }
+    }
 
 }
 

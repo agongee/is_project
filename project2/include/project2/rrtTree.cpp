@@ -304,8 +304,8 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
 
     //TODO
 
-    int min_scale = 10 // tune this parameter for minimum step ssize
-    int num_path = 50 // tune this parameter for number of sampling
+    int min_scale = 10; // tune this parameter for minimum step ssize
+    int num_path = 50; // tune this parameter for number of sampling
     traj paths[50]; // size should be num_path
 
     double alpha, d; //alpha, d of closest path
@@ -329,8 +329,8 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
 
     for (int i = 0; i < num_path; i++){
         point x_tmp; // x_new candidate
-        double x_c = x_near - paths[i].d/paths[i].alpha * sin(x_near.th);
-        double y_c = x_near + paths[i].d/paths[i].alpha * cos(x_near.th);
+        double x_c = x_near.x - paths[i].d/paths[i].alpha * sin(x_near.th);
+        double y_c = x_near.y + paths[i].d/paths[i].alpha * cos(x_near.th);
         x_tmp.th = x_near.th + paths[i].alpha;
         x_tmp.x = x_c + paths[i].d/paths[i].alpha * sin(x_tmp.th);
         x_tmp.y = y_c - paths[i].d/paths[i].alpha * cos(x_tmp.th);
@@ -341,7 +341,7 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
 	else {
 	    if (distance(x_rand, x_tmp) < min_dist) {
 		min_idx = i;
-		min_dist = distance(x_rand, x_temp);
+		min_dist = distance(x_rand, x_tmp);
 	    }
 	}
     }
@@ -369,8 +369,8 @@ bool rrtTree::isCollision(point x1, point x2, double d, double R) {	// ?????????
     // refer to page5(pdf) for the names of variables
 
     double beta = d / R;
-    double x_c = x1.x - R * sin(x1.th)
-    double y_c = x1.y + R * cos(x1.th)
+    double x_c = x1.x - R * sin(x1.th);
+    double y_c = x1.y + R * cos(x1.th);
 
     double th_temp = x1.th;
     for(int i = 0; i < ceil((x2.th-x1.th)/beta)-1; i++){	// point x2 not considered - need to check x2?
@@ -394,9 +394,9 @@ bool rrtTree::isCollision(point x1, point x2, double d, double R) {	// ?????????
 
 std::vector<traj> rrtTree::backtracking_traj(){
     //TODO
-    vector<traj> result;
+    std::vector<traj> result;
     
-    int curr_idx = nearestNeightbor(this->x_goal, maxstep)); // maxstep...????????? & should choose among leaf nodes, but not considered yet!!!!
+    int curr_idx = this->nearestNeightbor(this->x_goal, maxstep)); // maxstep...????????? & should choose among leaf nodes, but not considered yet!!!!
     while(curr_idx != 0){
 
 	traj tmp_t;		// temporary trajectory
@@ -421,7 +421,7 @@ std::vector<traj> rrtTree::backtracking_traj(){
 
 double distance(point p1, point p2){
 
-    return sqrt(pow(p1.x - p2.x) + pow(p1.y - p2.y));
+    return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
 
 }
 

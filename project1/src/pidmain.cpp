@@ -149,7 +149,7 @@ int main(int argc, char** argv){
                 control_rate.sleep();
                 break; // terminate and stop the car
             }
-
+            
         }
 
         // get ctrl value from pid_ctrl
@@ -162,9 +162,9 @@ int main(int argc, char** argv){
 	    
         float ctrl = pid_ctrl.get_control(car_pose, path[current_goal]);
 	    if(ctrl > 60.0 * M_PI / 180.0) // if ctrl goes over 60 degrees
-		ctrl = 60.0 * M_PI / 180.0;
+		    ctrl = 60.0 * M_PI / 180.0;
 	    else if(ctrl < -60.0 * M_PI / 180.0) // if ctrl goes under -60 degrees
-		ctrl = -60.0 * M_PI / 180.0;
+		    ctrl = -60.0 * M_PI / 180.0;
 	    
         drive_msg_stamped.drive.steering_angle = ctrl;
 

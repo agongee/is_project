@@ -20,9 +20,9 @@ PID::PID(){
     error_diff = 0;
 
     // init gains 
-    Kp = 0.9;
-    Ki = 0.05;
-    Kd = 0.05; 
+    Kp = 0.7;
+    Ki = 0.2;
+    Kd = 0.1;
 }
 
 void PID::reset() {
@@ -66,7 +66,7 @@ float PID::get_control(point car_pose, point goal_pose){
 
     e_t = (float)(goal_th - car_th);
     if (e_t > M_PI){
-        e_t = -2 * M_PI + e_t;
+        e_t = -(2 * M_PI - e_t);
     }
     else if(e_t < - M_PI){
         e_t = 2 * M_PI + e_t;
