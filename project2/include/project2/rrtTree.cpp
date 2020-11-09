@@ -387,7 +387,7 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
     out[2] = x_new.th;
     out[3] = alpha;
     out[4] = d;
-    return int(isCollision(x_near, x_new, d, d/alpha));
+    return int(isCollision(x_near, x_new, d, L/tan(alpha)));
     
 }
 
@@ -396,11 +396,28 @@ bool rrtTree::isCollision(point x1, point x2, double d, double R) {
     // whether path x1->x2 (not straight line, but 'path') crosses the obstacle
     // refer to page5(pdf) for the names of variables
 
-    double beta = d / R;
     double x_c = x1.x - R * sin(x1.th);
     double y_c = x1.y + R * cos(x1.th);
 
     double th_temp = x1.th;
+    int iter_bound = int(d) + 1;
+
+    for(int i = 1; i < iter_bound; i++){	// point x2 not considered - need to check x2?
+      double beta = i / R;
+
+      if (i == iter_bound - 1){
+          beta = d / R;
+      }
+
+      double x_n = x_c + R * sin(th_temp + beta);
+      double y_n = y_c - R * cos(th_temp + beta);
+
+      if (this->map.at<uchar>(int((x_n/(this->res)) + (this->map_origin_x)), int((y_n/(this->res)) + (this->map_origin_y))) == 0 ){
+        return true;
+      }
+    }
+
+    /*
     for(int i = 0; i < ceil(abs(x2.th-x1.th)/beta)-1; i++){	// point x2 not considered - need to check x2?
       if (x2.th<x1.th){
         beta *= -1;
@@ -413,6 +430,8 @@ bool rrtTree::isCollision(point x1, point x2, double d, double R) {
         return true;
       }
     }
+    */
+
 
     if (this->map.at<uchar>(int((x2.x/(this->res)) + (this->map_origin_x)), int((x2.y/(this->res)) + (this->map_origin_y))) == 0){
         return true;
