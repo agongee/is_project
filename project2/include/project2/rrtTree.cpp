@@ -209,31 +209,31 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
 
     while ( it < K || closest_dist > dist_thresh ){		
 
-	visualizeTree();
+        visualizeTree();
 
-	// step 1
-	point x_rand = randomState(x_max, x_min, y_max, y_min);
+        // step 1
+        point x_rand = randomState(x_max, x_min, y_max, y_min);
 
-	// step 2
-	int idx_near = nearestNeighbor(x_rand, MaxStep);
-	if (idx_near < 0 || ptrTable[idx_near] == NULL)
-	    continue;
-	point x_near = ptrTable[idx_near]->location;
+        // step 2
+        int idx_near = nearestNeighbor(x_rand, MaxStep);
+        if (idx_near < 0 || ptrTable[idx_near] == NULL)
+            continue;
+        point x_near = ptrTable[idx_near]->location;
 
-	// step 3
-	double out[5];
-	bool valid = randompath(out, x_near, x_rand, MaxStep);
-	if (!valid)
-	    continue;
-	point x_new = {out[0], out[1], out[2]};
+        // step 3
+        double out[5];
+        bool valid = randompath(out, x_near, x_rand, MaxStep);
+        if (!valid)
+            continue;
+        point x_new = {out[0], out[1], out[2]};
 
-	// step 4
-	addVertex(x_new, x_rand, idx_near, out[3], out[4]);
+        // step 4
+        addVertex(x_new, x_rand, idx_near, out[3], out[4]);
 
-	// update loop conditions
-	if (distance(x_new, x_goal) < closest_dist)
-	    closest_dist = distance(x_new, x_goal);
-	it++;
+        // update loop conditions
+        if (distance(x_new, x_goal) < closest_dist)
+            closest_dist = distance(x_new, x_goal);
+        it++;
 
     }
 }
@@ -288,6 +288,8 @@ int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
             min_idx = i;
         }
     }
+
+    return min_idx;
 
 }
 
@@ -385,7 +387,7 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
     
 }
 
-bool rrtTree::isCollision(point x1, point x2, double d, double R) {	// ???????????? right..? ???????????
+bool rrtTree::isCollision(point x1, point x2, double d, double R) {	
 
     // whether path x1->x2 (not straight line, but 'path') crosses the obstacle
     // refer to page5(pdf) for the names of variables
@@ -435,7 +437,6 @@ std::vector<traj> rrtTree::backtracking_traj(){
     }
     
     return result;	// doesnt contain root currently, but should it?
-
     
 }
 

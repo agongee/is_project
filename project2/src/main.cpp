@@ -308,19 +308,24 @@ void generate_path_RRT()
      */
     
     for(int i = 0; i < (waypoints.size() - 1); i++){ // initial point is waypoints[0]
+        printf("%d th path\n", i);
         point x_init = waypoints[i];
         point x_goal = waypoints[i + 1];
         rrtTree tree = rrtTree(x_init, x_goal, map, map_origin_x, map_origin_y, res, margin);
+        printf("%d th tree\n", i);
         tree.generateRRT(world_x_max, world_x_min, world_y_max, world_y_min, K, MaxStep);
+        printf("%d th generate\n", i);
 
         // Check plz
         std::vector<traj> temp_path = tree.backtracking_traj();
+        printf("%d th backtrack\n", i);
 
         // temp_path.pop_back(); // skip first point
         for(int j = 0; j < temp_path.size(); j++){  
             path_RRT.push_back(temp_path.back());
             temp_path.pop_back();
         }
+        printf("%d th iteration\n", i);
     }
 
 }
