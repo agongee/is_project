@@ -353,22 +353,26 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
 
     for (int i = 0; i < num_path; i++){
         point x_tmp; // x_new candidate
-        double x_c = x_near.x - paths[i].d/paths[i].alpha * sin(x_near.th);
-        double y_c = x_near.y + paths[i].d/paths[i].alpha * cos(x_near.th);
-        x_tmp.th = x_near.th + paths[i].alpha;
-        x_tmp.x = x_c + paths[i].d/paths[i].alpha * sin(x_tmp.th);
-        x_tmp.y = y_c - paths[i].d/paths[i].alpha * cos(x_tmp.th);
-	if (i == 0) {
-	    min_idx = i;
-	    min_dist = distance(x_rand, x_tmp);
-	}
-	else {
-	    if (distance(x_rand, x_tmp) < min_dist) {
-		min_idx = i;
-		min_dist = distance(x_rand, x_tmp);
-	    }
-	}
+        double R = L/tan(paths[i].alpha);
+        double x_c = x_near.x - R * sin(x_near.th);
+        double y_c = x_near.y + R * cos(x_near.th);
+        double beta = paths[i].d/R;
+        x_tmp.th = x_near.th + beta;
+        x_tmp.x = x_c + R * sin(x_tmp.th);
+        x_tmp.y = y_c - R * cos(x_tmp.th);
+
+      if (i == 0) {
+          min_idx = i;
+          min_dist = distance(x_rand, x_tmp);
+      }
+      else {
+        if (distance(x_rand, x_tmp) < min_dist) {
+          min_idx = i;
+          min_dist = distance(x_rand, x_tmp);
+        }
+      }
     }
+    
     point x_new;
     x_new.x = paths[min_idx].x;
     x_new.y = paths[min_idx].y;
@@ -397,8 +401,10 @@ bool rrtTree::isCollision(point x1, point x2, double d, double R) {
     double y_c = x1.y + R * cos(x1.th);
 
     double th_temp = x1.th;
-    for(int i = 0; i < ceil((x2.th-x1.th)/beta)-1; i++){	// point x2 not considered - need to check x2?
-
+    for(int i = 0; i < ceil(abs(x2.th-x1.th)/beta)-1; i++){	// point x2 not considered - need to check x2?
+      if (x2.th<x1.th){
+        beta *= -1;
+      }
       th_temp = th_temp + beta;
       double x_n = x_c + R * sin(th_temp);
       double y_n = y_c - R * cos(th_temp);
