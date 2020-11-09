@@ -267,9 +267,9 @@ int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
     //TODO
 
     // x_rand: x_rand.x, x_rand.y, x_rand.th
-    double R = L / tan(max_alpha)
-    double max_beta = MaxStep / R
-    double theta_max = x_rand.th + max_beta
+    double R = L / tan(max_alpha);
+    double max_beta = MaxStep / R;
+    double theta_max = x_rand.th + max_beta;
 
     // ptrTable: int idx, point rand, point location, int idx_parent, double alpha, double d
 
@@ -282,7 +282,7 @@ int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
         }
 
         double dist = distance(x_rand, ptrTable[i]->location);
-        double theta_itr = (ptrTable[i]->d)/ (L/tan(ptrTable[i]->alpha)) + ptrTable[i]->location.theta
+        double theta_itr = (ptrTable[i]->d)/ (L/tan(ptrTable[i]->alpha)) + ptrTable[i]->location.th;
         if ((dist < min_dist) && (theta_itr < theta_max)){
             min_dist = dist;
             min_idx = i;
@@ -401,11 +401,12 @@ bool rrtTree::isCollision(point x1, point x2, double d, double R) {	// ?????????
       double x_n = x_c + R * sin(th_temp);
       double y_n = y_c - R * cos(th_temp);
 
-      if ( map_margin.at<uchar>(int((x_n/this->res) + this->map_origin_x), int((y_n/this->res) + this->map_origin_y)) == 0 ) // if occupied, collision
+      if (this->map.at<uchar>(int((x_n/(this->res)) + (this->map_origin_x)), int((y_n/(this->res)) + (this->map_origin_y))) == 0 ){
         return true;
+      }
     }
 
-    if (map_margin.at<uchar>(int((x2.x/this->res) + this->map_origin_x), int((x2.y/this->res) + this->map_origin_y)) == 0){
+    if (this->map.at<uchar>(int((x2.x/(this->res)) + (this->map_origin_x)), int((x2.y/(this->res)) + (this->map_origin_y))) == 0){
         return true;
     }
     return false;
