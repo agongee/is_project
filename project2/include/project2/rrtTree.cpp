@@ -204,7 +204,7 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
     // random init
     std::srand(static_cast<unsigned int>(std::time(0)));
 
-    double dist_thresh = 0.4;				// tune this parameter
+    double dist_thresh = 0.2;				// tune this parameter
     int it = 0;						// iteration : minimum K
     double closest_dist = distance(this->x_init, this->x_goal);	// current closest distance from a node to goal
 
@@ -213,7 +213,7 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
         // step 1
         point x_rand;
 
-        if (it % 20 ==0){
+        if (it % 40 ==0){
             x_rand = this->x_goal;
         }
         else{
@@ -255,7 +255,10 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
 
     if (it == K){
         printf("Sadly...\n");
+        return 0;
     }
+
+    return 1;
 
 }
 
@@ -286,10 +289,11 @@ int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
     
 
     //TODO
+    int min_scale = 10; // tune this parameter for minimum step ssize
 
     // x_rand: x_rand.x, x_rand.y, x_rand.th
     double alpha = random_gen(0, max_alpha);
-    double d = random_gen(0, MaxStep);
+    double d = random_gen(MaxStep/min_scale, MaxStep);
     double R = L / tan(alpha); // +
     double max_beta = d / R;
     // double theta_max = x_rand.th + max_beta;

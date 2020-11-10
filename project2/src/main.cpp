@@ -31,7 +31,7 @@ double world_y_max;
 
 //parameters we should adjust : K, margin, MaxStep
 int margin = 15;
-int K = 5000;
+int K = 10000;
 double MaxStep = 1.0;
 
 //way points
@@ -123,7 +123,6 @@ int main(int argc, char** argv){
             // printf("%f, %f\n", current_goal.x, current_goal.y);
 	        ros::spinOnce();
             for(int i = 0; i < path_RRT.size(); i++){
-                printf("path_RRT size: %d\n", path_RRT.size());
 		        for(int j = 0; j < model_states->name.size(); j++){
                     std::ostringstream ball_name;
                     ball_name << i;
@@ -271,7 +270,7 @@ int main(int argc, char** argv){
             cmd_vel_pub.publish(cmd);
 
             // step 3
-            if(distance(robot_pose, current_goal) < 0.4){
+            if(distance(robot_pose, current_goal) < 0.2){
                 look_ahead_idx++;
                 current_goal.x = path_RRT[look_ahead_idx].x;
                 current_goal.y = path_RRT[look_ahead_idx].y;
@@ -322,7 +321,12 @@ void generate_path_RRT()
         rrtTree *tree;
         tree = new rrtTree(x_init, x_goal, map, map_origin_x, map_origin_y, res, margin);
         printf("%d th tree\n", i);
-        tree->generateRRT(world_x_max, world_x_min, world_y_max, world_y_min, K, MaxStep);
+        int valid = tree->generateRRT(world_x_max, world_x_min, world_y_max, world_y_min, K, MaxStep);
+        while (valid == 0){
+            delete tree;
+            tree = new rrtTree(x_init, x_goal, map, map_origin_x, map_origin_y, res, margin);
+            valid = tree->generateRRT(world_x_max, world_x_min, world_y_max, world_y_min, K, MaxStep);
+        }
         printf("%d th generate\n", i);
 
         // Check plz
