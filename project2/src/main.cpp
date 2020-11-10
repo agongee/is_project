@@ -106,7 +106,7 @@ int main(int argc, char** argv){
     state = INIT;
     bool running = true;
     int look_ahead_idx;
-    ros::Rate control_rate(10);
+    ros::Rate control_rate(60);
 
     double speed = 1.0; // velocity, auto-tune by distance
     point current_goal;
@@ -120,12 +120,12 @@ int main(int argc, char** argv){
             current_goal.x = path_RRT[look_ahead_idx].x;
             current_goal.y = path_RRT[look_ahead_idx].y;
             current_goal.th = path_RRT[look_ahead_idx].th;
-            //printf("%f, %f\n", current_goal.x, current_goal.y);
+            // printf("%f, %f\n", current_goal.x, current_goal.y);
 	        ros::spinOnce();
             for(int i = 0; i < path_RRT.size(); i++){
                 printf("path_RRT size: %d\n", path_RRT.size());
 		        for(int j = 0; j < model_states->name.size(); j++){
-                    //printf("%f, %f\n", i, j);
+                    printf("why????\n");
                     std::ostringstream ball_name;
                     ball_name << i;
             	    if(std::strcmp(model_states->name[j].c_str(), ball_name.str().c_str()) == 0){
@@ -258,7 +258,7 @@ int main(int argc, char** argv){
             // step 1 (incomplete)
             printf("current goal: %d\n", look_ahead_idx);
             double ctrl = pid_ctrl.get_control(robot_pose, current_goal);
-            speed = path_RRT[look_ahead_idx].d / 6.0;
+            speed = path_RRT[look_ahead_idx].d;
             // ros::spinOnce();
             // printf("ctrl_original: %f", ctrl);
             if(ctrl > 60.0 * M_PI / 180.0) // if ctrl goes over 60 degrees
@@ -315,6 +315,7 @@ void generate_path_RRT()
      */
     
     for(int i = 0; i < (waypoints.size() - 1); i++){ // initial point is waypoints[0]
+        printf("waypoint_size: %d\n", waypoints.size());
         printf("%d th path\n", i);
         point x_init = waypoints[i];
         point x_goal = waypoints[i + 1];
@@ -354,7 +355,7 @@ void set_waypoints()
     waypoint_candid[3].th = 0.0;
 
     int order[] = {3,1,2,3};
-    int order_size = 3;
+    int order_size = 4;
 
     for(int i = 0; i < order_size; i++){
         waypoints.push_back(waypoint_candid[order[i]]);
@@ -369,9 +370,9 @@ void set_waypoints()
 }
 
 void callback_state(gazebo_msgs::ModelStatesConstPtr msgs){
-    //printf("entered callback_state\n");
+    // printf("entered callback_state\n");
     model_states = msgs;
-    //printf("%d\n", msgs->name.size());
+    // printf("%d\n", msgs->name.size());u
     for(int i; i < msgs->name.size(); i++){
         if(std::strcmp(msgs->name[i].c_str(),"racecar") == 0){
             robot_pose.x = msgs->pose[i].position.x;

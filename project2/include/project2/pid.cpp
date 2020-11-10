@@ -59,7 +59,7 @@ float PID::get_control(point car_pose, point goal_pose){
     
 
     // control rate: 10Hz (refer to pidmain.cpp)
-    double rate = 10;
+    double rate = 60;
 
     // error computation and update
     float e_t; // temp error variable, for error difference computation

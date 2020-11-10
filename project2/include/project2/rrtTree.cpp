@@ -34,7 +34,8 @@ rrtTree::rrtTree(point x_init, point x_goal) {
 }
 
 rrtTree::~rrtTree(){
-    for (int i = 1; i <= count; i++) {
+    printf("count: %d\n", count);
+    for (int i = 0; i < count; i++) {
         delete ptrTable[i];
     }
 }
@@ -178,7 +179,7 @@ void rrtTree::addVertex(point x_new, point x_rand, int idx_near, double alpha, d
     // tree is an array of the node
 
     if (this->count == MAX_TABLE){
-        std::cout << "error: Full Table" << std::endl;
+        // std::cout << "error: Full Table" << std::endl;
         return;
     }
 
@@ -207,8 +208,7 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
     int it = 0;						// iteration : minimum K
     double closest_dist = distance(this->x_init, this->x_goal);	// current closest distance from a node to goal
 
-    while ( it < K || closest_dist > dist_thresh ){		
-
+    while ( it < K || closest_dist > dist_thresh ){
         // step 1
         point x_rand;
         if (it%5==0){
@@ -225,16 +225,17 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
             continue;
         }
         point x_near = ptrTable[idx_near]->location;
-
+        it++;
         // step 3
         double out[5];
         bool invalid = this->randompath(out, x_near, x_rand, MaxStep);
-        if (invalid)
+        if (invalid){
             continue;
+        }
         point x_new = {out[0], out[1], out[2]};
 
         // step 4
-        addVertex(x_new, x_rand, idx_near, out[3], out[4]);
+        this->addVertex(x_new, x_rand, idx_near, out[3], out[4]);
 
         // update loop conditions
         if (distance(x_new, this->x_goal) < closest_dist)
@@ -243,7 +244,6 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
         if (closest_dist <= dist_thresh){
             break;
         }
-        it++;
 
     }
 }
@@ -286,6 +286,7 @@ int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
     double min_dist = distance(x_rand, ptrTable[0]->location);
     int min_idx = 0;
 
+    // not sure!
     for (int i = 1; i < this->count; i++){
         if (this->ptrTable[i] == NULL){
             continue;
@@ -476,11 +477,11 @@ std::vector<traj> rrtTree::backtracking_traj(){
 	result.push_back(tmp_t);
 
 	curr_idx = this->ptrTable[curr_idx]->idx_parent;	// should choose among parents, but not considered yet!!!!
-    printf("curr_idx: %d\n", curr_idx);
+    // printf("curr_idx: %d\n", curr_idx);
     }
 
-    for (int i=0;i<result.size();i++)
-        printf("result: (%f, %f)\n", result[i].x, result[i].y);
+    // for (int i=0;i<result.size();i++)
+        // printf("result: (%f, %f)\n", result[i].x, result[i].y);
     //add root to path
     // printf("current index: %d\n", curr_idx);
     // tmp_t.x = this->ptrTable[curr_idx]->location.x;
