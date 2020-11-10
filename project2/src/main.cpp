@@ -32,7 +32,7 @@ double world_y_max;
 //parameters we should adjust : K, margin, MaxStep
 int margin = 15;
 int K = 1500;
-double MaxStep = 2;
+double MaxStep = 0.1;
 
 //way points
 std::vector<point> waypoints;
@@ -342,28 +342,28 @@ void generate_path_RRT()
 void set_waypoints()
 {
     point waypoint_candid[4];
-    waypoint_candid[0].x = 5.0;
-    waypoint_candid[0].y = -8.0;
-    waypoint_candid[1].x = -6.0;
-    waypoint_candid[1].y = -7.0;
-    waypoint_candid[2].x = -7.0;
-    waypoint_candid[2].y = 6.0;
-    waypoint_candid[3].x = 3.0;
-    waypoint_candid[3].y = 7.0;
-    waypoint_candid[3].th = 0.0;
+    // waypoint_candid[0].x = 5.0;
+    // waypoint_candid[0].y = -8.0;
+    // waypoint_candid[1].x = -6.0;
+    // waypoint_candid[1].y = -7.0;
+    // waypoint_candid[2].x = -7.0;
+    // waypoint_candid[2].y = 6.0;
+    // waypoint_candid[3].x = 3.0;
+    // waypoint_candid[3].y = 7.0;
+    // waypoint_candid[3].th = 0.0;
 
-    int order[] = {3,1,2,3};
-    int order_size = 3;
+    // int order[] = {3,1,2,3};
+    // int order_size = 3;
 
-    for(int i = 0; i < order_size; i++){
-        waypoints.push_back(waypoint_candid[order[i]]);
-    }
-    // waypoint_candid[0].x = 3.0;
-    // waypoint_candid[0].y= 7.0;
-    // waypoint_candid[1].x = 6.0;
-    // waypoint_candid[1].y = 7.0;
-    //waypoints.push_back(waypoint_candid[0]);
-    // waypoints.push_back(waypoint_candid[1]);
+    // for(int i = 0; i < order_size; i++){
+    //     waypoints.push_back(waypoint_candid[order[i]]);
+    // }
+    waypoint_candid[0].x = 3.0;
+    waypoint_candid[0].y= 7.0;
+    waypoint_candid[1].x = 6.0;
+    waypoint_candid[1].y = 7.0;
+    waypoints.push_back(waypoint_candid[0]);
+    waypoints.push_back(waypoint_candid[1]);
     
 }
 
