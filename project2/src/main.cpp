@@ -32,7 +32,7 @@ double world_y_max;
 //parameters we should adjust : K, margin, MaxStep
 int margin = 15;
 int K = 1500;
-double MaxStep = 4;
+double MaxStep = 2;
 
 //way points
 std::vector<point> waypoints;
@@ -120,12 +120,12 @@ int main(int argc, char** argv){
             current_goal.x = path_RRT[look_ahead_idx].x;
             current_goal.y = path_RRT[look_ahead_idx].y;
             current_goal.th = path_RRT[look_ahead_idx].th;
-            printf("%f, %f\n", current_goal.x, current_goal.y);
+            //printf("%f, %f\n", current_goal.x, current_goal.y);
 	        ros::spinOnce();
             for(int i = 0; i < path_RRT.size(); i++){
-                printf("%d\n", path_RRT.size());
+                printf("path_RRT size: %d\n", path_RRT.size());
 		        for(int j = 0; j < model_states->name.size(); j++){
-                    printf("%f, %f\n", i, j);
+                    //printf("%f, %f\n", i, j);
                     std::ostringstream ball_name;
                     ball_name << i;
             	    if(std::strcmp(model_states->name[j].c_str(), ball_name.str().c_str()) == 0){
@@ -257,7 +257,7 @@ int main(int argc, char** argv){
 
             // step 1 (incomplete)
             double ctrl = pid_ctrl.get_control(robot_pose, current_goal);
-            printf("(x, y): %f, %f\n", robot_pose.x, robot_pose.y);
+            //printf("(x, y): %f, %f\n", robot_pose.x, robot_pose.y);
             ros::spinOnce();
             if(ctrl > 60.0 * M_PI / 180.0) // if ctrl goes over 60 degrees
                 ctrl = 60.0 * M_PI / 180.0;
@@ -322,12 +322,16 @@ void generate_path_RRT()
         // Check plz
         std::vector<traj> temp_path = tree.backtracking_traj();
         printf("%d th backtrack\n", i);
+        printf("temp_path size: %d\n", temp_path.size());
         
         tree.visualizeTree(temp_path);
 
+        int iter_max = temp_path.size();
+        printf("temp_path: (%f, %f), (%f, %f)\n", temp_path[0].x, temp_path[0].y, temp_path[1].x, temp_path[1].y);
         // temp_path.pop_back(); // skip first point
-        for(int j = 0; j < temp_path.size(); j++){  
+        for(int j = 0; j < iter_max; j++){
             path_RRT.push_back(temp_path.back());
+            printf("temp_path: (%f, %f)\n", temp_path.back().x, temp_path.back().y);
             temp_path.pop_back();
         }
         printf("%d th iteration\n", i);
@@ -338,35 +342,35 @@ void generate_path_RRT()
 void set_waypoints()
 {
     point waypoint_candid[4];
-    // waypoint_candid[0].x = 5.0;
-    // waypoint_candid[0].y = -8.0;
-    // waypoint_candid[1].x = -6.0;
-    // waypoint_candid[1].y = -7.0;
-    // waypoint_candid[2].x = -7.0;
-    // waypoint_candid[2].y = 6.0;
-    // waypoint_candid[3].x = 3.0;
-    // waypoint_candid[3].y = 7.0;
-    // waypoint_candid[3].th = 0.0;
+    waypoint_candid[0].x = 5.0;
+    waypoint_candid[0].y = -8.0;
+    waypoint_candid[1].x = -6.0;
+    waypoint_candid[1].y = -7.0;
+    waypoint_candid[2].x = -7.0;
+    waypoint_candid[2].y = 6.0;
+    waypoint_candid[3].x = 3.0;
+    waypoint_candid[3].y = 7.0;
+    waypoint_candid[3].th = 0.0;
 
-    // int order[] = {3,1,2,3};
-    // int order_size = 3;
+    int order[] = {3,1,2,3};
+    int order_size = 3;
 
-    // for(int i = 0; i < order_size; i++){
-    //     waypoints.push_back(waypoint_candid[order[i]]);
-    // }
-    waypoint_candid[0].x = 3.0;
-    waypoint_candid[0].y= 7.0;
-    waypoint_candid[1].x = 6.0;
-    waypoint_candid[1].y = 7.0;
-    waypoints.push_back(waypoint_candid[0]);
-    waypoints.push_back(waypoint_candid[1]);
+    for(int i = 0; i < order_size; i++){
+        waypoints.push_back(waypoint_candid[order[i]]);
+    }
+    // waypoint_candid[0].x = 3.0;
+    // waypoint_candid[0].y= 7.0;
+    // waypoint_candid[1].x = 6.0;
+    // waypoint_candid[1].y = 7.0;
+    //waypoints.push_back(waypoint_candid[0]);
+    // waypoints.push_back(waypoint_candid[1]);
     
 }
 
 void callback_state(gazebo_msgs::ModelStatesConstPtr msgs){
-    printf("entered callback_state\n");
+    //printf("entered callback_state\n");
     model_states = msgs;
-    printf("%d\n", msgs->name.size());
+    //printf("%d\n", msgs->name.size());
     for(int i; i < msgs->name.size(); i++){
         if(std::strcmp(msgs->name[i].c_str(),"racecar") == 0){
             robot_pose.x = msgs->pose[i].position.x;

@@ -220,6 +220,7 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
 
         // step 2
         int idx_near = this->nearestNeighbor(x_rand, MaxStep);
+        printf("idx_near: %d\n", idx_near);
         if (idx_near < 0 || ptrTable[idx_near] == NULL){
             continue;
         }
@@ -369,6 +370,9 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
         x_tmp.th = x_near.th + beta;
         x_tmp.x = x_c + R * sin(x_tmp.th);
         x_tmp.y = y_c - R * cos(x_tmp.th);
+        paths[i].x = x_tmp.x;
+        paths[i].y = x_tmp.y;
+        paths[i].th = x_tmp.th;
 
       if (i == 0) {
           min_idx = i;
@@ -471,13 +475,12 @@ std::vector<traj> rrtTree::backtracking_traj(){
 	tmp_t.d = this->ptrTable[curr_idx]->d;
 	result.push_back(tmp_t);
 
-	point tmp_p;	// temporary point
-	tmp_p.x = tmp_t.x;
-	tmp_p.y = tmp_t.y;
-	tmp_p.th = tmp_t.th;
 	curr_idx = this->ptrTable[curr_idx]->idx_parent;	// should choose among parents, but not considered yet!!!!
+    printf("curr_idx: %d\n", curr_idx);
     }
 
+    for (int i=0;i<result.size();i++)
+        printf("result: (%f, %f)\n", result[i].x, result[i].y);
     //add root to path
     // printf("current index: %d\n", curr_idx);
     // tmp_t.x = this->ptrTable[curr_idx]->location.x;
