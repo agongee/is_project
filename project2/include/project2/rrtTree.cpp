@@ -353,7 +353,7 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
         paths[i].x = x_rand.x;
         paths[i].y = x_rand.y;
         paths[i].th = x_rand.th;
-        paths[i].d = random_gen(0, MaxStep);
+        paths[i].d = random_gen(MaxStep/min_scale, MaxStep);
         paths[i].alpha = random_gen((-1) * max_alpha, max_alpha);
     }
 
@@ -414,10 +414,10 @@ bool rrtTree::isCollision(point x1, point x2, double d, double R) {
     double y_c = x1.y + R * cos(x1.th);
 
     double th_temp = x1.th;
-    int iter_bound = int(d) + 1;
+    int iter_bound = int(d / this->res) + 1;
 
-    for(int i = 1; i < iter_bound; i++){	// point x2 not considered - need to check x2?
-      double beta = i / R;
+    for(int i = 0; i < iter_bound; i++){	// point x2 not considered - need to check x2?
+      double beta = i * (this->res) / R;
 
       if (i == iter_bound - 1){
           beta = d / R;
