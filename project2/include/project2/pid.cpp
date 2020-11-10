@@ -20,8 +20,8 @@ PID::PID(){
     error_diff = 0;
 
     // init gains 
-    Kp = 0.7;
-    Ki = 0.2;
+    Kp = 1.0;
+    Ki = 0.1;
     Kd = 0.1;
 }
 

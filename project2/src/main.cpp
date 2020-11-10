@@ -31,7 +31,7 @@ double world_y_max;
 
 //parameters we should adjust : K, margin, MaxStep
 int margin = 15;
-int K = 1500;
+int K = 5000;
 double MaxStep = 1.0;
 
 //way points
@@ -113,7 +113,7 @@ int main(int argc, char** argv){
     PID pid_ctrl;
     
 
-    while(running){
+    while(running && ros::ok()){
         switch (state) {
         case INIT: {
             look_ahead_idx = 0;
@@ -125,7 +125,6 @@ int main(int argc, char** argv){
             for(int i = 0; i < path_RRT.size(); i++){
                 printf("path_RRT size: %d\n", path_RRT.size());
 		        for(int j = 0; j < model_states->name.size(); j++){
-                    printf("why????\n");
                     std::ostringstream ball_name;
                     ball_name << i;
             	    if(std::strcmp(model_states->name[j].c_str(), ball_name.str().c_str()) == 0){
@@ -258,7 +257,7 @@ int main(int argc, char** argv){
             // step 1 (incomplete)
             printf("current goal: %d\n", look_ahead_idx);
             double ctrl = pid_ctrl.get_control(robot_pose, current_goal);
-            speed = path_RRT[look_ahead_idx].d;
+            //speed = path_RRT[look_ahead_idx].d;
             // ros::spinOnce();
             // printf("ctrl_original: %f", ctrl);
             if(ctrl > 60.0 * M_PI / 180.0) // if ctrl goes over 60 degrees
@@ -272,11 +271,12 @@ int main(int argc, char** argv){
             cmd_vel_pub.publish(cmd);
 
             // step 3
-            if(distance(robot_pose, current_goal) < 0.2){
+            if(distance(robot_pose, current_goal) < 0.4){
                 look_ahead_idx++;
                 current_goal.x = path_RRT[look_ahead_idx].x;
                 current_goal.y = path_RRT[look_ahead_idx].y;
                 current_goal.th = path_RRT[look_ahead_idx].th;
+                pid_ctrl.reset();
             }
             // else{
             //     speed = 1.0;
@@ -319,17 +319,18 @@ void generate_path_RRT()
         printf("%d th path\n", i);
         point x_init = waypoints[i];
         point x_goal = waypoints[i + 1];
-        rrtTree tree = rrtTree(x_init, x_goal, map, map_origin_x, map_origin_y, res, margin);
+        rrtTree *tree;
+        tree = new rrtTree(x_init, x_goal, map, map_origin_x, map_origin_y, res, margin);
         printf("%d th tree\n", i);
-        tree.generateRRT(world_x_max, world_x_min, world_y_max, world_y_min, K, MaxStep);
+        tree->generateRRT(world_x_max, world_x_min, world_y_max, world_y_min, K, MaxStep);
         printf("%d th generate\n", i);
 
         // Check plz
-        std::vector<traj> temp_path = tree.backtracking_traj();
+        std::vector<traj> temp_path = tree->backtracking_traj();
         printf("%d th backtrack\n", i);
-        
-        tree.visualizeTree(temp_path);
 
+        //tree->visualizeTree(temp_path);
+        
         int iter_max = temp_path.size();
         // temp_path.pop_back(); // skip first point
         for(int j = 0; j < iter_max; j++){
@@ -337,6 +338,8 @@ void generate_path_RRT()
             temp_path.pop_back();
         }
         printf("%d th iteration\n", i);
+
+        delete tree;
     }
 
 }

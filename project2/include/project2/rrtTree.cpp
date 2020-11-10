@@ -179,7 +179,7 @@ void rrtTree::addVertex(point x_new, point x_rand, int idx_near, double alpha, d
     // tree is an array of the node
 
     if (this->count == MAX_TABLE){
-        // std::cout << "error: Full Table" << std::endl;
+        std::cout << "error: Full Table" << std::endl;
         return;
     }
 
@@ -204,14 +204,16 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
     // random init
     std::srand(static_cast<unsigned int>(std::time(0)));
 
-    double dist_thresh = 0.2;				// tune this parameter
+    double dist_thresh = 0.4;				// tune this parameter
     int it = 0;						// iteration : minimum K
     double closest_dist = distance(this->x_init, this->x_goal);	// current closest distance from a node to goal
 
-    while ( it < K || closest_dist > dist_thresh ){
+    //while ( it < K || closest_dist > dist_thresh ){
+    for (it = 0; it < K; it ++){
         // step 1
         point x_rand;
-        if (it%5==0){
+
+        if (it % 20 ==0){
             x_rand = this->x_goal;
         }
         else{
@@ -220,12 +222,11 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
 
         // step 2
         int idx_near = this->nearestNeighbor(x_rand, MaxStep);
-        // printf("idx_near: %d\n", idx_near);
         if (idx_near < 0 || ptrTable[idx_near] == NULL){
             continue;
         }
+
         point x_near = ptrTable[idx_near]->location;
-        it++;
         // step 3
         double out[5];
         bool invalid = this->randompath(out, x_near, x_rand, MaxStep);
@@ -236,16 +237,26 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
 
         // step 4
         this->addVertex(x_new, x_rand, idx_near, out[3], out[4]);
+        //it++;
 
         // update loop conditions
         if (distance(x_new, this->x_goal) < closest_dist)
             closest_dist = distance(x_new, x_goal);
         
-        if (closest_dist <= dist_thresh){
+        if (closest_dist < dist_thresh){
             break;
         }
 
+        if (it % 200){
+            printf("%d th iteration for generateRRT\n", it);
+        }
+
     }
+
+    if (it == K){
+        printf("Sadly...\n");
+    }
+
 }
 
 point rrtTree::randomState(double x_max, double x_min, double y_max, double y_min) {
@@ -258,7 +269,7 @@ point rrtTree::randomState(double x_max, double x_min, double y_max, double y_mi
 
     x_rand.x = random_gen(x_min, x_max);
     x_rand.y = random_gen(y_min, y_max);
-    // x_rand.th = atan2(x_rand.y, x_rand.x); // ok?
+    //x_rand.th = atan2(x_rand.y, x_rand.x); // ok?
     x_rand.th = random_gen(-PI, PI); // ok??????
 
     return x_rand;
@@ -277,8 +288,10 @@ int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
     //TODO
 
     // x_rand: x_rand.x, x_rand.y, x_rand.th
-    double R = L / tan(max_alpha);
-    double max_beta = MaxStep / R;
+    double alpha = random_gen(0, max_alpha);
+    double d = random_gen(0, MaxStep);
+    double R = L / tan(alpha); // +
+    double max_beta = d / R;
     // double theta_max = x_rand.th + max_beta;
 
     // ptrTable: int idx, point rand, point location, int idx_parent, double alpha, double d
@@ -410,6 +423,13 @@ bool rrtTree::isCollision(point x1, point x2, double d, double R) {
     // whether path x1->x2 (not straight line, but 'path') crosses the obstacle
     // refer to page5(pdf) for the names of variables
 
+    // bool direction = true;
+    // if (R < 0){
+    //     direction = false;
+    // }
+
+    // R = abs(R);
+
     double x_c = x1.x - R * sin(x1.th);
     double y_c = x1.y + R * cos(x1.th);
 
@@ -423,33 +443,47 @@ bool rrtTree::isCollision(point x1, point x2, double d, double R) {
           beta = d / R;
       }
 
+    //   if (!direction){
+    //       beta = - beta;
+    //   }
+
       double x_n = x_c + R * sin(th_temp + beta);
       double y_n = y_c - R * cos(th_temp + beta);
 
-      if (this->map.at<uchar>(int((x_n/(this->res)) + (this->map_origin_x)), int((y_n/(this->res)) + (this->map_origin_y))) == 0 ){
-        return true;
+      int x_map = round(x_n / this->res + this->map_origin_x);
+      int y_map = round(y_n / this->res + this->map_origin_y);
+
+      //if (this->map.at<uchar>(int((x_n/(this->res)) + (this->map_origin_x)), int((y_n/(this->res)) + (this->map_origin_y))) == 0 ){
+      //  return true;
+      //}
+
+    //   if (x_map < 0 || x_map > round(this->map_origin_x * 2 + 0.5)){
+    //       return true;
+    //   }
+    //   else if (y_map < 0 || y_map > round(this->map_origin_y * 2 + 0.5)){
+    //       return true;
+    //   }
+      if (map.at<uchar>(x_map, y_map) <= 125){
+          return true;
       }
+
     }
 
-    /*
-    for(int i = 0; i < ceil(abs(x2.th-x1.th)/beta)-1; i++){	// point x2 not considered - need to check x2?
-      if (x2.th<x1.th){
-        beta *= -1;
-      }
-      th_temp = th_temp + beta;
-      double x_n = x_c + R * sin(th_temp);
-      double y_n = y_c - R * cos(th_temp);
-
-      if (this->map.at<uchar>(int((x_n/(this->res)) + (this->map_origin_x)), int((y_n/(this->res)) + (this->map_origin_y))) == 0 ){
-        return true;
-      }
-    }
-    */
+    int x_map = round(x2.x / this->res + this->map_origin_x);
+    int y_map = round(x2.y / this->res + this->map_origin_y);
 
 
-    if (this->map.at<uchar>(int((x2.x/(this->res)) + (this->map_origin_x)), int((x2.y/(this->res)) + (this->map_origin_y))) == 0){
+
+    // if (x_map < 0 || x_map > round(this->map_origin_x * 2 + 0.5)){
+    //     return true;
+    // }
+    // else if (y_map < 0 || y_map > round(this->map_origin_y * 2 + 0.5)){
+    //     return true;
+    // }
+    if (map.at<uchar>(x_map, y_map) <= 125){
         return true;
     }
+
     return false;
     // memo: unknown region not considered
 }
@@ -458,27 +492,34 @@ std::vector<traj> rrtTree::backtracking_traj(){
     //TODO
     std::vector<traj> result;
 
-    traj tmp_t;
-	tmp_t.x = this->x_goal.x;
-	tmp_t.y = this->x_goal.y;
-	tmp_t.th = this->x_goal.th;
-	tmp_t.alpha = 0;
-	tmp_t.d = 0;
-	result.push_back(tmp_t);
+    traj tmp_goal;
+	tmp_goal.x = this->x_goal.x;
+	tmp_goal.y = this->x_goal.y;
+	tmp_goal.th = this->x_goal.th;
+	tmp_goal.alpha = 0;
+	tmp_goal.d = 0;
+	result.push_back(tmp_goal);
     
     int curr_idx = this->nearestNeighbor(this->x_goal);
     while (curr_idx > 0){
 	// temporary trajectory
-	tmp_t.x = this->ptrTable[curr_idx]->location.x;
-	tmp_t.y = this->ptrTable[curr_idx]->location.y;
-	tmp_t.th = this->ptrTable[curr_idx]->location.th;
-	tmp_t.alpha = this->ptrTable[curr_idx]->alpha;
-	tmp_t.d = this->ptrTable[curr_idx]->d;
-	result.push_back(tmp_t);
+        traj tmp_t;
+        tmp_t.x = this->ptrTable[curr_idx]->location.x;
+        tmp_t.y = this->ptrTable[curr_idx]->location.y;
+        tmp_t.th = this->ptrTable[curr_idx]->location.th;
+        tmp_t.alpha = this->ptrTable[curr_idx]->alpha;
+        tmp_t.d = this->ptrTable[curr_idx]->d;
+        result.push_back(tmp_t);
 
-	curr_idx = this->ptrTable[curr_idx]->idx_parent;	// should choose among parents, but not considered yet!!!!
-    // printf("curr_idx: %d\n", curr_idx);
+        if (curr_idx == 0){
+            break;
+        }
+
+        curr_idx = this->ptrTable[curr_idx]->idx_parent;	// should choose among parents, but not considered yet!!!!
+        // printf("curr_idx: %d\n", curr_idx);
     }
+    
+    
 
     // for (int i=0;i<result.size();i++)
         // printf("result: (%f, %f)\n", result[i].x, result[i].y);
