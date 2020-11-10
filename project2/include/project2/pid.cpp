@@ -78,7 +78,8 @@ float PID::get_control(point car_pose, point goal_pose){
     // final ctrl computation
     ctrl = Kp * error + Ki / rate * error_sum + Kd * rate * error_diff;
 
-    error_sum += e_t; 
+    error_sum += e_t;
+    printf("error_sum: %f\n", error_sum);
 
     return ctrl;
 }
