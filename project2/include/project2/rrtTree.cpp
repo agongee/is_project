@@ -279,7 +279,7 @@ int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
     // x_rand: x_rand.x, x_rand.y, x_rand.th
     double R = L / tan(max_alpha);
     double max_beta = MaxStep / R;
-    double theta_max = x_rand.th + max_beta;
+    // double theta_max = x_rand.th + max_beta;
 
     // ptrTable: int idx, point rand, point location, int idx_parent, double alpha, double d
 
@@ -293,7 +293,7 @@ int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
 
         double dist = distance(x_rand, ptrTable[i]->location);
         double theta_itr = (ptrTable[i]->d)/ (L/tan(ptrTable[i]->alpha)) + ptrTable[i]->location.th;
-        if ((dist < min_dist) && (theta_itr < theta_max)){
+        if ((dist < min_dist) && (theta_itr >= x_rand.th - max_beta) && (theta_itr <= x_rand.th + max_beta)){
             min_dist = dist;
             min_idx = i;
         }

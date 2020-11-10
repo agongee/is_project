@@ -32,7 +32,7 @@ double world_y_max;
 //parameters we should adjust : K, margin, MaxStep
 int margin = 15;
 int K = 1500;
-double MaxStep = 0.1;
+double MaxStep = 1.0;
 
 //way points
 std::vector<point> waypoints;
@@ -106,7 +106,7 @@ int main(int argc, char** argv){
     state = INIT;
     bool running = true;
     int look_ahead_idx;
-    ros::Rate control_rate(60);
+    ros::Rate control_rate(10);
 
     double speed = 1.0; // velocity, auto-tune by distance
     point current_goal;
@@ -257,13 +257,14 @@ int main(int argc, char** argv){
 
             // step 1 (incomplete)
             double ctrl = pid_ctrl.get_control(robot_pose, current_goal);
-            //printf("(x, y): %f, %f\n", robot_pose.x, robot_pose.y);
+            speed = path_RRT[look_ahead_idx].d / 6.0;
             ros::spinOnce();
+            printf("ctrl_original: %f", ctrl);
             if(ctrl > 60.0 * M_PI / 180.0) // if ctrl goes over 60 degrees
                 ctrl = 60.0 * M_PI / 180.0;
             else if(ctrl < -60.0 * M_PI / 180.0) // if ctrl goes under -60 degrees
                 ctrl = -60.0 * M_PI / 180.0;
-            
+            printf("ctrl_fixed: %f\n", ctrl);
             setcmdvel(speed, ctrl);
 
             // step 2
@@ -275,11 +276,10 @@ int main(int argc, char** argv){
                 current_goal.x = path_RRT[look_ahead_idx].x;
                 current_goal.y = path_RRT[look_ahead_idx].y;
                 current_goal.th = path_RRT[look_ahead_idx].th;
-                //speed = 0.1;
             }
-            else{
-                speed = 1.0;
-            }
+            // else{
+            //     speed = 1.0;
+            // }
             if (look_ahead_idx > path_RRT.size())
                 state = FINISH;
 	    
@@ -322,16 +322,13 @@ void generate_path_RRT()
         // Check plz
         std::vector<traj> temp_path = tree.backtracking_traj();
         printf("%d th backtrack\n", i);
-        printf("temp_path size: %d\n", temp_path.size());
         
         tree.visualizeTree(temp_path);
 
         int iter_max = temp_path.size();
-        printf("temp_path: (%f, %f), (%f, %f)\n", temp_path[0].x, temp_path[0].y, temp_path[1].x, temp_path[1].y);
         // temp_path.pop_back(); // skip first point
         for(int j = 0; j < iter_max; j++){
             path_RRT.push_back(temp_path.back());
-            printf("temp_path: (%f, %f)\n", temp_path.back().x, temp_path.back().y);
             temp_path.pop_back();
         }
         printf("%d th iteration\n", i);
