@@ -120,9 +120,10 @@ int main(int argc, char** argv){
             current_goal.x = path_RRT[look_ahead_idx].x;
             current_goal.y = path_RRT[look_ahead_idx].y;
             current_goal.th = path_RRT[look_ahead_idx].th;
-            //visualize path
+            printf("%f, %f\n", current_goal.x, current_goal.y);
 	        ros::spinOnce();
             for(int i = 0; i < path_RRT.size(); i++){
+                printf("%d\n", path_RRT.size());
 		        for(int j = 0; j < model_states->name.size(); j++){
                     printf("%f, %f\n", i, j);
                     std::ostringstream ball_name;
@@ -363,7 +364,9 @@ void set_waypoints()
 }
 
 void callback_state(gazebo_msgs::ModelStatesConstPtr msgs){
+    printf("entered callback_state\n");
     model_states = msgs;
+    printf("%d\n", msgs->name.size());
     for(int i; i < msgs->name.size(); i++){
         if(std::strcmp(msgs->name[i].c_str(),"racecar") == 0){
             robot_pose.x = msgs->pose[i].position.x;
