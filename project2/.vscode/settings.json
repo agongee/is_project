@@ -39,6 +39,8 @@
         "list": "cpp",
         "string": "cpp",
         "vector": "cpp",
-        "iterator": "cpp"
+        "iterator": "cpp",
+        "array": "cpp",
+        "bitset": "cpp"
     }
 }
