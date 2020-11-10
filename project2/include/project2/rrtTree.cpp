@@ -205,25 +205,30 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
 
     double dist_thresh = 0.5;				// tune this parameter
     int it = 0;						// iteration : minimum K
-    double closest_dist = distance(x_init, x_goal);	// current closest distance from a node to goal
+    double closest_dist = distance(this->x_init, this->x_goal);	// current closest distance from a node to goal
 
     while ( it < K || closest_dist > dist_thresh ){		
 
-        visualizeTree();
-
         // step 1
-        point x_rand = randomState(x_max, x_min, y_max, y_min);
+        point x_rand;
+        if (it%5==0){
+            x_rand = this->x_goal;
+        }
+        else{
+            x_rand = this->randomState(x_max, x_min, y_max, y_min);
+        }
 
         // step 2
-        int idx_near = nearestNeighbor(x_rand, MaxStep);
-        if (idx_near < 0 || ptrTable[idx_near] == NULL)
+        int idx_near = this->nearestNeighbor(x_rand, MaxStep);
+        if (idx_near < 0 || ptrTable[idx_near] == NULL){
             continue;
+        }
         point x_near = ptrTable[idx_near]->location;
 
         // step 3
         double out[5];
-        bool valid = randompath(out, x_near, x_rand, MaxStep);
-        if (!valid)
+        bool invalid = this->randompath(out, x_near, x_rand, MaxStep);
+        if (invalid)
             continue;
         point x_new = {out[0], out[1], out[2]};
 
@@ -231,8 +236,12 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
         addVertex(x_new, x_rand, idx_near, out[3], out[4]);
 
         // update loop conditions
-        if (distance(x_new, x_goal) < closest_dist)
+        if (distance(x_new, this->x_goal) < closest_dist)
             closest_dist = distance(x_new, x_goal);
+        
+        // if (closest_dist <= dist_thresh){
+        //     break;
+        // }
         it++;
 
     }
@@ -249,7 +258,7 @@ point rrtTree::randomState(double x_max, double x_min, double y_max, double y_mi
     x_rand.x = random_gen(x_min, x_max);
     x_rand.y = random_gen(y_min, y_max);
     // x_rand.th = atan2(x_rand.y, x_rand.x); // ok?
-    x_rand.th = random_gen(0, 2*PI); // ok??????
+    x_rand.th = random_gen(-PI, PI); // ok??????
 
     return x_rand;
 
@@ -443,10 +452,18 @@ bool rrtTree::isCollision(point x1, point x2, double d, double R) {
 std::vector<traj> rrtTree::backtracking_traj(){
     //TODO
     std::vector<traj> result;
+
+    traj tmp_t;
+	tmp_t.x = this->x_goal.x;
+	tmp_t.y = this->x_goal.y;
+	tmp_t.th = this->x_goal.th;
+	tmp_t.alpha = 0;
+	tmp_t.d = 0;
+	result.push_back(tmp_t);
     
     int curr_idx = this->nearestNeighbor(this->x_goal);
-    while (curr_idx != 0){
-	traj tmp_t;		// temporary trajectory
+    while (curr_idx > 0){
+	// temporary trajectory
 	tmp_t.x = this->ptrTable[curr_idx]->location.x;
 	tmp_t.y = this->ptrTable[curr_idx]->location.y;
 	tmp_t.th = this->ptrTable[curr_idx]->location.th;
@@ -460,6 +477,14 @@ std::vector<traj> rrtTree::backtracking_traj(){
 	tmp_p.th = tmp_t.th;
 	curr_idx = this->ptrTable[curr_idx]->idx_parent;	// should choose among parents, but not considered yet!!!!
     }
+
+    //add root to path
+    // printf("current index: %d\n", curr_idx);
+    // tmp_t.x = this->ptrTable[curr_idx]->location.x;
+	// tmp_t.y = this->ptrTable[curr_idx]->location.y;
+	// tmp_t.th = this->ptrTable[curr_idx]->location.th;
+	// tmp_t.alpha = this->ptrTable[curr_idx]->alpha;
+	// tmp_t.d = this->ptrTable[curr_idx]->d;
     
     return result;	// doesnt contain root currently, but should it?
     

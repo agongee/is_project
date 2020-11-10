@@ -120,11 +120,11 @@ int main(int argc, char** argv){
             current_goal.x = path_RRT[look_ahead_idx].x;
             current_goal.y = path_RRT[look_ahead_idx].y;
             current_goal.th = path_RRT[look_ahead_idx].th;
-	        printf("path size : %d\n", path_RRT.size());
             //visualize path
 	        ros::spinOnce();
             for(int i = 0; i < path_RRT.size(); i++){
 		        for(int j = 0; j < model_states->name.size(); j++){
+                    printf("%f, %f\n", i, j);
                     std::ostringstream ball_name;
                     ball_name << i;
             	    if(std::strcmp(model_states->name[j].c_str(), ball_name.str().c_str()) == 0){
@@ -256,6 +256,8 @@ int main(int argc, char** argv){
 
             // step 1 (incomplete)
             double ctrl = pid_ctrl.get_control(robot_pose, current_goal);
+            printf("(x, y): %f, %f\n", robot_pose.x, robot_pose.y);
+            ros::spinOnce();
             if(ctrl > 60.0 * M_PI / 180.0) // if ctrl goes over 60 degrees
                 ctrl = 60.0 * M_PI / 180.0;
             else if(ctrl < -60.0 * M_PI / 180.0) // if ctrl goes under -60 degrees
@@ -272,12 +274,12 @@ int main(int argc, char** argv){
                 current_goal.x = path_RRT[look_ahead_idx].x;
                 current_goal.y = path_RRT[look_ahead_idx].y;
                 current_goal.th = path_RRT[look_ahead_idx].th;
-                speed = 0.1;
+                //speed = 0.1;
             }
             else{
                 speed = 1.0;
             }
-            if (look_ahead_idx == path_RRT.size())
+            if (look_ahead_idx > path_RRT.size())
                 state = FINISH;
 	    
         } break;
@@ -319,6 +321,8 @@ void generate_path_RRT()
         // Check plz
         std::vector<traj> temp_path = tree.backtracking_traj();
         printf("%d th backtrack\n", i);
+        
+        tree.visualizeTree(temp_path);
 
         // temp_path.pop_back(); // skip first point
         for(int j = 0; j < temp_path.size(); j++){  
@@ -333,22 +337,29 @@ void generate_path_RRT()
 void set_waypoints()
 {
     point waypoint_candid[4];
-    waypoint_candid[0].x = 5.0;
-    waypoint_candid[0].y = -8.0;
-    waypoint_candid[1].x = -6.0;
-    waypoint_candid[1].y = -7.0;
-    waypoint_candid[2].x = -7.0;
-    waypoint_candid[2].y = 6.0;
-    waypoint_candid[3].x = 3.0;
-    waypoint_candid[3].y = 7.0;
-    waypoint_candid[3].th = 0.0;
+    // waypoint_candid[0].x = 5.0;
+    // waypoint_candid[0].y = -8.0;
+    // waypoint_candid[1].x = -6.0;
+    // waypoint_candid[1].y = -7.0;
+    // waypoint_candid[2].x = -7.0;
+    // waypoint_candid[2].y = 6.0;
+    // waypoint_candid[3].x = 3.0;
+    // waypoint_candid[3].y = 7.0;
+    // waypoint_candid[3].th = 0.0;
 
-    int order[] = {3,1,2,3};
-    int order_size = 3;
+    // int order[] = {3,1,2,3};
+    // int order_size = 3;
 
-    for(int i = 0; i < order_size; i++){
-        waypoints.push_back(waypoint_candid[order[i]]);
-    }
+    // for(int i = 0; i < order_size; i++){
+    //     waypoints.push_back(waypoint_candid[order[i]]);
+    // }
+    waypoint_candid[0].x = 3.0;
+    waypoint_candid[0].y= 7.0;
+    waypoint_candid[1].x = 6.0;
+    waypoint_candid[1].y = 7.0;
+    waypoints.push_back(waypoint_candid[0]);
+    waypoints.push_back(waypoint_candid[1]);
+    
 }
 
 void callback_state(gazebo_msgs::ModelStatesConstPtr msgs){
