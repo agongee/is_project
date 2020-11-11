@@ -32,7 +32,7 @@ double world_y_max;
 //parameters we should adjust : K, margin, MaxStep
 int margin = 15;
 int K = 10000;
-double MaxStep = 2.0;
+double MaxStep = 3.0;
 
 //way points
 std::vector<point> waypoints;
@@ -255,14 +255,24 @@ int main(int argc, char** argv){
             // step 1 (incomplete)
             printf("current goal: %d\n", look_ahead_idx);
             double ctrl = pid_ctrl.get_control(robot_pose, current_goal);
-            speed = path_RRT[look_ahead_idx].d;
-            printf("speed: %f\n", speed);
+            speed = path_RRT[look_ahead_idx].d * 0.8;
+            // printf("ctrl: %f\n", ctrl);
+            // printf("speed: %f, R: %f, beta: %f\n", speed, 0.325/tan(path_RRT[look_ahead_idx].alpha), path_RRT[look_ahead_idx].d * tan(path_RRT[look_ahead_idx].alpha)/0.325);
             if (speed < 0.01){
                 speed = 0.1;
             }
             if (speed > 2.0){
                 speed = 2.0;
             }
+            double diff = atan2((current_goal.y - robot_pose.y), (current_goal.x- robot_pose.x)) - robot_pose.th;
+
+            if (diff > M_PI){
+                diff = diff - 2* M_PI;
+            }
+            else if (diff < -M_PI){
+                diff = 2* M_PI + diff;
+            }
+
             if(ctrl > 60.0 * M_PI / 180.0){ // if ctrl goes over 60 degrees
                 printf("CTRL over 60\n");
                 ctrl = 60.0 * M_PI / 180.0;
@@ -271,6 +281,12 @@ int main(int argc, char** argv){
                 printf("CTRL over -60\n");
                 ctrl = -60.0 * M_PI / 180.0;
             }
+
+            if (fabs(ctrl - diff) >= 0.2){
+                speed = 0.1;
+            }
+
+            // printf("ctrl-diff: %f\n", speed, fabs(ctrl-diff));
 
             // printf("ctrl_fixed: %f\n", ctrl);
             setcmdvel(speed, ctrl);
@@ -285,6 +301,11 @@ int main(int argc, char** argv){
                 current_goal.y = path_RRT[look_ahead_idx].y;
                 current_goal.th = path_RRT[look_ahead_idx].th;
                 pid_ctrl.reset();
+            }
+            for (int i = 0; i<3; i++){
+                if (distance(robot_pose, waypoints[i]) < 0.2){
+                    printf("waypoint %d reached\n", i);
+                }
             }
             // else{
             //     speed = 1.0;
@@ -350,9 +371,18 @@ void generate_path_RRT()
             path_RRT.push_back(temp_path.back());
             temp_path.pop_back();
         }
+
+        // printf("waypoint %d: %d\n", i+1, path_RRT.size());
         printf("%d th iteration\n", i);
 
         delete tree;
+
+        point leaf;
+        leaf.x = path_RRT.back().x; leaf.y = path_RRT.back().y;
+
+        // printf("x, y, th, %f, %f, %f\n", x_goal.x, x_goal.y, x_goal.th);
+        waypoints[i+1] = leaf;
+        // printf("x, y, th, %f, %f, %f\n", leaf.x, leaf.y, leaf.th);
     }
 
 }

@@ -21,8 +21,8 @@ PID::PID(){
 
     // init gains 
     Kp = 1.0;
-    Ki = 0.1;
-    Kd = 0.1;
+    Ki = 0.0;
+    Kd = 0.0;
 }
 
 void PID::reset() {

@@ -290,13 +290,13 @@ int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
 
     //TODO
     int min_scale = 8; // tune this parameter for minimum step ssize
-    double R_threshold = 0.5;
+    // double R_threshold = 0.5;
 
     // x_rand: x_rand.x, x_rand.y, x_rand.th
-    double alpha = random_gen(0, max_alpha);
+    // double alpha = random_gen(0, max_alpha);
     // double d = random_gen(MaxStep/min_scale, MaxStep);
-    double R = L / tan(alpha); // have to change radius!
-    // double max_beta = d / R;
+    double R = L / tan(max_alpha); // have to change radius!
+    double max_beta = MaxStep / R;
 
     // double theta_max = x_rand.th + max_beta;
 
@@ -313,16 +313,16 @@ int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
 
         double dist = distance(x_rand, ptrTable[i]->location);
         double radius_itr = L/tan(ptrTable[i]->alpha);
-        
-        // double theta_itr = (ptrTable[i]->d)/ (L/tan(ptrTable[i]->alpha)) + ptrTable[i]->location.th;
-        // if ((dist < min_dist) && (theta_itr >= x_rand.th - max_beta) && (theta_itr <= x_rand.th + max_beta)){
-        //     min_dist = dist;
-        //     min_idx = i;
-        // }
-        if ((dist<min_dist) && abs(radius_itr) > R_threshold){
+
+        double theta_itr = (ptrTable[i]->d)/ (L/tan(ptrTable[i]->alpha)) + ptrTable[i]->location.th;
+        if ((dist < min_dist) && (theta_itr >= x_rand.th - max_beta) && (theta_itr <= x_rand.th + max_beta)){
             min_dist = dist;
             min_idx = i;
         }
+        // if ((dist<min_dist) && abs(radius_itr) > R_threshold){
+        //     min_dist = dist;
+        //     min_idx = i;
+        // }
     }
 
     return min_idx;
@@ -513,6 +513,13 @@ std::vector<traj> rrtTree::backtracking_traj(){
 	result.push_back(tmp_goal);
     
     int curr_idx = this->nearestNeighbor(this->x_goal);
+    point t;
+    t.x = tmp_goal.x; t.y = tmp_goal.y; t.th = tmp_goal.th;
+    point leaf;
+    leaf.x = this->ptrTable[curr_idx]->location.x;
+    leaf.y = this->ptrTable[curr_idx]->location.y;
+    leaf.th = this->ptrTable[curr_idx]->location.th;
+    printf("distance between leaf and waypoint: %f\n", distance(leaf, t));
     while (curr_idx > 0){
 	// temporary trajectory
         traj tmp_t;
