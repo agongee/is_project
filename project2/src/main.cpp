@@ -32,13 +32,12 @@ double world_y_max;
 //parameters we should adjust : K, margin, MaxStep
 int margin = 15;
 int K = 10000;
-double MaxStep = 1.0;
+double MaxStep = 2.0;
 
 //way points
 std::vector<point> waypoints;
 
 //path
-//std::vector<point> path_RRT;
 std::vector<traj> path_RRT;
 
 //control
@@ -256,13 +255,23 @@ int main(int argc, char** argv){
             // step 1 (incomplete)
             printf("current goal: %d\n", look_ahead_idx);
             double ctrl = pid_ctrl.get_control(robot_pose, current_goal);
-            //speed = path_RRT[look_ahead_idx].d;
-            // ros::spinOnce();
-            // printf("ctrl_original: %f", ctrl);
-            if(ctrl > 60.0 * M_PI / 180.0) // if ctrl goes over 60 degrees
+            speed = path_RRT[look_ahead_idx].d;
+            printf("speed: %f\n", speed);
+            if (speed < 0.01){
+                speed = 0.1;
+            }
+            if (speed > 2.0){
+                speed = 2.0;
+            }
+            if(ctrl > 60.0 * M_PI / 180.0){ // if ctrl goes over 60 degrees
+                printf("CTRL over 60\n");
                 ctrl = 60.0 * M_PI / 180.0;
-            else if(ctrl < -60.0 * M_PI / 180.0) // if ctrl goes under -60 degrees
+            }
+            else if(ctrl < -60.0 * M_PI / 180.0){ // if ctrl goes under -60 degrees
+                printf("CTRL over -60\n");
                 ctrl = -60.0 * M_PI / 180.0;
+            }
+
             // printf("ctrl_fixed: %f\n", ctrl);
             setcmdvel(speed, ctrl);
 
@@ -333,7 +342,7 @@ void generate_path_RRT()
         std::vector<traj> temp_path = tree->backtracking_traj();
         printf("%d th backtrack\n", i);
 
-        //tree->visualizeTree(temp_path);
+        tree->visualizeTree(temp_path);
         
         int iter_max = temp_path.size();
         // temp_path.pop_back(); // skip first point

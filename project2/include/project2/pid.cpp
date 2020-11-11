@@ -20,8 +20,8 @@ PID::PID(){
     error_diff = 0;
 
     // init gains 
-    Kp = 0.7;
-    Ki = 0.2;
+    Kp = 1.0;
+    Ki = 0.1;
     Kd = 0.1;
 }
 
@@ -79,7 +79,6 @@ float PID::get_control(point car_pose, point goal_pose){
     ctrl = Kp * error + Ki / rate * error_sum + Kd * rate * error_diff;
 
     error_sum += e_t;
-    printf("error_sum: %f\n", error_sum);
 
     return ctrl;
 }

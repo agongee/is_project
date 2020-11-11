@@ -247,9 +247,9 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
             break;
         }
 
-        if (it % 200){
-            printf("%d th iteration for generateRRT\n", it);
-        }
+        // if (it % 200){
+        //     printf("%d th iteration for generateRRT\n", it);
+        // }
 
     }
 
@@ -289,13 +289,15 @@ int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
     
 
     //TODO
-    int min_scale = 10; // tune this parameter for minimum step ssize
+    int min_scale = 8; // tune this parameter for minimum step ssize
+    double R_threshold = 0.5;
 
     // x_rand: x_rand.x, x_rand.y, x_rand.th
     double alpha = random_gen(0, max_alpha);
-    double d = random_gen(MaxStep/min_scale, MaxStep);
-    double R = L / tan(alpha); // +
-    double max_beta = d / R;
+    // double d = random_gen(MaxStep/min_scale, MaxStep);
+    double R = L / tan(alpha); // have to change radius!
+    // double max_beta = d / R;
+
     // double theta_max = x_rand.th + max_beta;
 
     // ptrTable: int idx, point rand, point location, int idx_parent, double alpha, double d
@@ -310,8 +312,14 @@ int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
         }
 
         double dist = distance(x_rand, ptrTable[i]->location);
-        double theta_itr = (ptrTable[i]->d)/ (L/tan(ptrTable[i]->alpha)) + ptrTable[i]->location.th;
-        if ((dist < min_dist) && (theta_itr >= x_rand.th - max_beta) && (theta_itr <= x_rand.th + max_beta)){
+        double radius_itr = L/tan(ptrTable[i]->alpha);
+        
+        // double theta_itr = (ptrTable[i]->d)/ (L/tan(ptrTable[i]->alpha)) + ptrTable[i]->location.th;
+        // if ((dist < min_dist) && (theta_itr >= x_rand.th - max_beta) && (theta_itr <= x_rand.th + max_beta)){
+        //     min_dist = dist;
+        //     min_idx = i;
+        // }
+        if ((dist<min_dist) && abs(radius_itr) > R_threshold){
             min_dist = dist;
             min_idx = i;
         }
@@ -356,7 +364,7 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
 
     //TODO
 
-    int min_scale = 10; // tune this parameter for minimum step ssize
+    int min_scale = 8; // tune this parameter for minimum step ssize
     int num_path = 50; // tune this parameter for number of sampling
     traj paths[50]; // size should be num_path
 
@@ -546,9 +554,5 @@ double distance(point p1, point p2){
 }
 
 double random_gen(double min_val, double max_val){
-
-    static const double fraction = 1.0 / (RAND_MAX + 1.0);
-
-    return min_val + (max_val - min_val + 1.0) * static_cast<double>(std::rand()) * fraction;
-    
+    return min_val + static_cast <double> (std::rand()) /( static_cast <double> (RAND_MAX/(max_val - min_val)));   
 }
