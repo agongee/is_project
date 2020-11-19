@@ -5,7 +5,8 @@
 
 #define MAX_TABLE 20000
 
-double max_alpha = 0.2; // maximum steering angle of front wheels --> alpha is in -max_alpha ~ max_alpha
+//double max_alpha = 0.2; // maximum steering angle of front wheels --> alpha is in -max_alpha ~ max_alpha
+double max_alpha = 0.2;
 double L = 0.325; // length of the RC car
 
 rrtTree::rrtTree() {
@@ -110,10 +111,13 @@ void rrtTree::visualizeTree(){
             cv::line(imgResult, x1, x2, cv::Scalar(255, 0, 0), thickness, lineType);
 	    }
     }
+    // cv::namedWindow("Mapping");
+    // cv::Rect imgROI((int)Res*200,(int)Res*200,(int)Res*400,(int)Res*400);
+    // cv::imshow("Mapping", imgResult(imgROI));
+    // cv::waitKey(1);
     cv::namedWindow("Mapping");
-    cv::Rect imgROI((int)Res*200,(int)Res*200,(int)Res*400,(int)Res*400);
-    cv::imshow("Mapping", imgResult(imgROI));
-    cv::waitKey(1);
+    cv::imshow("Mapping", imgResult);
+    // cv::waitKey(1);
 }
 
 void rrtTree::visualizeTree(std::vector<traj> path){
@@ -165,13 +169,16 @@ void rrtTree::visualizeTree(std::vector<traj> path){
             cv::line(imgResult, x1, x2, cv::Scalar(255, 0, 0), thickness, lineType);
 	    }
     }
+    // cv::namedWindow("Mapping");
+    // cv::Rect imgROI((int)Res*200,(int)Res*200,(int)Res*400,(int)Res*400);
+    // cv::imshow("Mapping", imgResult(imgROI));
+    // cv::waitKey(1);
+
     cv::namedWindow("Mapping");
-    cv::Rect imgROI((int)Res*200,(int)Res*200,(int)Res*400,(int)Res*400);
-    cv::imshow("Mapping", imgResult(imgROI));
-    cv::waitKey(1);
+    cv::imshow("Mapping", imgResult);
+    // cv::waitKey(1);
+
 }
-
-
 // Done
 void rrtTree::addVertex(point x_new, point x_rand, int idx_near, double alpha, double d) {
 
@@ -204,7 +211,7 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
     // random init
     std::srand(static_cast<unsigned int>(std::time(0)));
 
-    double dist_thresh = 0.2;				// tune this parameter
+    double dist_thresh = 0.1;				// tune this parameter
     int it = 0;						// iteration : minimum K
     double closest_dist = distance(this->x_init, this->x_goal);	// current closest distance from a node to goal
 
@@ -213,7 +220,7 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
         // step 1
         point x_rand;
 
-        if (it % 40 ==0){
+        if (it % 3 ==0){
             x_rand = this->x_goal;
         }
         else{
@@ -272,8 +279,8 @@ point rrtTree::randomState(double x_max, double x_min, double y_max, double y_mi
 
     x_rand.x = random_gen(x_min, x_max);
     x_rand.y = random_gen(y_min, y_max);
-    //x_rand.th = atan2(x_rand.y, x_rand.x); // ok?
-    x_rand.th = random_gen(-PI, PI); // ok??????
+    x_rand.th = atan2(x_rand.y, x_rand.x); // ok?
+    // x_rand.th = random_gen(-PI, PI); // ok??????
 
     return x_rand;
 
@@ -306,23 +313,47 @@ int rrtTree::nearestNeighbor(point x_rand, double MaxStep) {
     int min_idx = 0;
 
     // not sure!
+    // for (int i = 1; i < this->count; i++){
+    //     if (this->ptrTable[i] == NULL){
+    //         continue;
+    //     }
+
+    //     double dist = distance(x_rand, ptrTable[i]->location);
+    //     double radius_itr = L/tan(ptrTable[i]->alpha);
+
+    //     double theta_itr = (ptrTable[i]->d)/ (L/tan(ptrTable[i]->alpha)) + ptrTable[i]->location.th;
+    //     if ((dist < min_dist) && (theta_itr >= x_rand.th - max_beta) && (theta_itr <= x_rand.th + max_beta)){
+    //         min_dist = dist;
+    //         min_idx = i;
+    //     }
+    //     // if ((dist<min_dist) && abs(radius_itr) > R_threshold){
+    //     //     min_dist = dist;
+    //     //     min_idx = i;
+    //     // }
+    // }
+
     for (int i = 1; i < this->count; i++){
-        if (this->ptrTable[i] == NULL){
+
+        if (this->ptrTable[i] == NULL)
             continue;
-        }
+
+        point tmp = { ptrTable[i]->location.x, ptrTable[i]->location.y, ptrTable[i]->location.th };
+        double x_c1 = tmp.x + R * sin(tmp.th);
+        double y_c1 = tmp.y - R * cos(tmp.th);
+        double x_c2 = tmp.x - R * sin(tmp.th);
+        double y_c2 = tmp.y + R * sin(tmp.th);
+
+        point c1 = {x_c1, y_c1, 0};
+        point c2 = {x_c2, y_c2, 0};
+
+        if (distance(x_rand, c1) < R && distance(x_rand, c2) < R)
+            continue;
 
         double dist = distance(x_rand, ptrTable[i]->location);
-        double radius_itr = L/tan(ptrTable[i]->alpha);
-
-        double theta_itr = (ptrTable[i]->d)/ (L/tan(ptrTable[i]->alpha)) + ptrTable[i]->location.th;
-        if ((dist < min_dist) && (theta_itr >= x_rand.th - max_beta) && (theta_itr <= x_rand.th + max_beta)){
+        if (dist < min_dist) {
             min_dist = dist;
             min_idx = i;
         }
-        // if ((dist<min_dist) && abs(radius_itr) > R_threshold){
-        //     min_dist = dist;
-        //     min_idx = i;
-        // }
     }
 
     return min_idx;
@@ -378,7 +409,8 @@ int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep)
         paths[i].x = x_rand.x;
         paths[i].y = x_rand.y;
         paths[i].th = x_rand.th;
-        paths[i].d = random_gen(MaxStep/min_scale, MaxStep);
+        //paths[i].d = random_gen(MaxStep/min_scale, MaxStep);
+        paths[i].d = random_gen(0.5*MaxStep, MaxStep);
         paths[i].alpha = random_gen((-1) * max_alpha, max_alpha);
     }
 
@@ -500,42 +532,96 @@ bool rrtTree::isCollision(point x1, point x2, double d, double R) {
     // memo: unknown region not considered
 }
 
+// std::vector<traj> rrtTree::backtracking_traj(){
+//     //TODO
+//     std::vector<traj> result;
+
+//     traj tmp_goal;
+// 	tmp_goal.x = this->x_goal.x;
+// 	tmp_goal.y = this->x_goal.y;
+// 	tmp_goal.th = this->x_goal.th;
+// 	tmp_goal.alpha = 0;
+// 	tmp_goal.d = 0;
+// 	result.push_back(tmp_goal);
+    
+//     int curr_idx = this->nearestNeighbor(this->x_goal);
+//     point t;
+//     t.x = tmp_goal.x; t.y = tmp_goal.y; t.th = tmp_goal.th;
+//     point leaf;
+//     leaf.x = this->ptrTable[curr_idx]->location.x;
+//     leaf.y = this->ptrTable[curr_idx]->location.y;
+//     leaf.th = this->ptrTable[curr_idx]->location.th;
+//     printf("distance between leaf and waypoint: %f\n", distance(leaf, t));
+//     while (curr_idx > 0){
+// 	// temporary trajectory
+//         traj tmp_t;
+//         tmp_t.x = this->ptrTable[curr_idx]->location.x;
+//         tmp_t.y = this->ptrTable[curr_idx]->location.y;
+//         tmp_t.th = this->ptrTable[curr_idx]->location.th;
+//         tmp_t.alpha = this->ptrTable[curr_idx]->alpha;
+//         tmp_t.d = this->ptrTable[curr_idx]->d;
+//         result.push_back(tmp_t);
+
+//         if (curr_idx == 0){
+//             break;
+//         }
+
+//         curr_idx = this->ptrTable[curr_idx]->idx_parent;	// should choose among parents, but not considered yet!!!!
+//         // printf("curr_idx: %d\n", curr_idx);
+//     }
+    
+    
+
+//     // for (int i=0;i<result.size();i++)
+//         // printf("result: (%f, %f)\n", result[i].x, result[i].y);
+//     //add root to path
+//     // printf("current index: %d\n", curr_idx);
+//     // tmp_t.x = this->ptrTable[curr_idx]->location.x;
+// 	// tmp_t.y = this->ptrTable[curr_idx]->location.y;
+// 	// tmp_t.th = this->ptrTable[curr_idx]->location.th;
+// 	// tmp_t.alpha = this->ptrTable[curr_idx]->alpha;
+// 	// tmp_t.d = this->ptrTable[curr_idx]->d;
+    
+//     return result;	// doesnt contain root currently, but should it?
+    
+// }
 std::vector<traj> rrtTree::backtracking_traj(){
     //TODO
     std::vector<traj> result;
 
-    traj tmp_goal;
-	tmp_goal.x = this->x_goal.x;
-	tmp_goal.y = this->x_goal.y;
-	tmp_goal.th = this->x_goal.th;
-	tmp_goal.alpha = 0;
-	tmp_goal.d = 0;
-	result.push_back(tmp_goal);
+    // traj tmp_goal;
+	// tmp_goal.x = this->x_goal.x;
+	// tmp_goal.y = this->x_goal.y;
+	// tmp_goal.th = this->x_goal.th;
+	// tmp_goal.alpha = 0;
+	// tmp_goal.d = 0;
+	// //result.push_back(tmp_goal);
     
     int curr_idx = this->nearestNeighbor(this->x_goal);
-    point t;
-    t.x = tmp_goal.x; t.y = tmp_goal.y; t.th = tmp_goal.th;
-    point leaf;
-    leaf.x = this->ptrTable[curr_idx]->location.x;
-    leaf.y = this->ptrTable[curr_idx]->location.y;
-    leaf.th = this->ptrTable[curr_idx]->location.th;
-    printf("distance between leaf and waypoint: %f\n", distance(leaf, t));
-    while (curr_idx > 0){
+    // point t;
+    // t.x = tmp_goal.x; t.y = tmp_goal.y; t.th = tmp_goal.th;
+    point leaf = { this->ptrTable[curr_idx]->location.x, this->ptrTable[curr_idx]->location.y, this->ptrTable[curr_idx]->location.th };
+    // printf("distance between leaf and waypoint: %f\n", distance(leaf, t));
+    int it = 0;
+    while (curr_idx >= 0){
 	// temporary trajectory
+        //printf("curr_idx: %d\n", curr_idx);
+        leaf = { this->ptrTable[curr_idx]->location.x, this->ptrTable[curr_idx]->location.y, this->ptrTable[curr_idx]->location.th };
         traj tmp_t;
-        tmp_t.x = this->ptrTable[curr_idx]->location.x;
-        tmp_t.y = this->ptrTable[curr_idx]->location.y;
-        tmp_t.th = this->ptrTable[curr_idx]->location.th;
+        tmp_t.x = leaf.x;
+        tmp_t.y = leaf.y;
+        tmp_t.th = leaf.th;
         tmp_t.alpha = this->ptrTable[curr_idx]->alpha;
         tmp_t.d = this->ptrTable[curr_idx]->d;
+        
         result.push_back(tmp_t);
 
-        if (curr_idx == 0){
+        if(curr_idx == 0)
             break;
-        }
-
+        
         curr_idx = this->ptrTable[curr_idx]->idx_parent;	// should choose among parents, but not considered yet!!!!
         // printf("curr_idx: %d\n", curr_idx);
+
     }
     
     
@@ -561,5 +647,12 @@ double distance(point p1, point p2){
 }
 
 double random_gen(double min_val, double max_val){
-    return min_val + static_cast <double> (std::rand()) /( static_cast <double> (RAND_MAX/(max_val - min_val)));   
+    // double result = min_val + static_cast <double> (std::rand()) /( static_cast <double> (RAND_MAX/(max_val - min_val)));
+    // while( result == 0 )
+    //     result = min_val + static_cast <double> (std::rand()) /( static_cast <double> (RAND_MAX/(max_val - min_val)));
+    // return result;  
+    double result = min_val + double(std::rand())/RAND_MAX * (max_val - min_val);
+    while( result == 0 )
+        result = min_val + double(std::rand())/RAND_MAX * (max_val - min_val);
+    return result;   
 }

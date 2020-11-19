@@ -31,8 +31,8 @@ double world_y_max;
 
 //parameters we should adjust : K, margin, MaxStep
 int margin = 15;
-int K = 10000;
-double MaxStep = 3.0;
+int K = 15000;
+double MaxStep = 1.5;
 
 //way points
 std::vector<point> waypoints;
@@ -97,8 +97,47 @@ int main(int argc, char** argv){
     set_waypoints();
     printf("Set way points\n");
 
+    double RES = 2;
+    cv::Mat map_margin = map.clone();
+    int xSize = map_margin.cols;
+    int ySize = map_margin.rows;
+    for (int i = 0; i < ySize; i++) {
+        for (int j = 0; j < xSize; j++) {
+            if (map.at<uchar>(i, j) < 125) {
+                for (int k = i - margin; k <= i + margin; k++) {
+                    for (int l = j - margin; l <= j + margin; l++) {
+                        if (k >= 0 && l >= 0 && k < ySize && l < xSize) {
+                            map_margin.at<uchar>(k, l) = 0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    cv::Mat map_copy = map_margin.clone();
+    cv::cvtColor(map_copy, map_copy, CV_GRAY2BGR);
+    cv::resize(map_copy, map_copy, cv::Size(), 2, 2);
+    for(int i = 0; i < waypoints.size(); i++){
+        std::vector<cv::Scalar> colors;
+        colors.push_back(cv::Scalar(0, 0, 255));
+        colors.push_back(cv::Scalar(0, 128, 255));
+        colors.push_back(cv::Scalar(0, 255, 255));
+        colors.push_back(cv::Scalar(0, 255, 0));
+        colors.push_back(cv::Scalar(255, 0, 0));
+        colors.push_back(cv::Scalar(255, 0, 128));
+        printf("waypoints[%d]: (%f, %f)\n", i, waypoints[i].x, waypoints[i].y);
+        int y = RES*(waypoints[i].x/res + map_origin_x);
+        int x = RES*(waypoints[i].y/res + map_origin_y);
+        cv::circle(map_copy, cv::Point(x, y), 5, colors[i % colors.size()], cv::FILLED, 8);
+    }
+    cv::namedWindow("waypoints");
+    cv::imshow("waypoints", map_copy);
+    cv::waitKey(0);
+    printf("map size: %d * %d\n", map_copy.rows, map_copy.cols);
+
     // RRT
     generate_path_RRT();
+    printf("path_RRT size: %d\n", path_RRT.size());
     printf("Generate RRT\n");
 
     // FSM
@@ -240,55 +279,27 @@ int main(int argc, char** argv){
         } break;
 
         case RUNNING: {
-            //TODO
-            /*
-                1. make control following point in the variable "path_RRT"
-                    use function setcmdvel(double v, double w) which set cmd_vel as desired input value.
-                2. publish
-                3. check distance between robot and current goal point
-                4. if distance is less than 0.2 (update next goal point) (you can change the distance if you want)
-                    look_ahead_idx++
-                5. if robot reach the final goal
-                    finish RUNNING (state = FINISH)
-            */
-
-            // step 1 (incomplete)
+	        //TODO
             printf("current goal: %d\n", look_ahead_idx);
+
+            // generate ctrl by PID
             double ctrl = pid_ctrl.get_control(robot_pose, current_goal);
-            speed = path_RRT[look_ahead_idx].d * 0.8;
-            // printf("ctrl: %f\n", ctrl);
-            // printf("speed: %f, R: %f, beta: %f\n", speed, 0.325/tan(path_RRT[look_ahead_idx].alpha), path_RRT[look_ahead_idx].d * tan(path_RRT[look_ahead_idx].alpha)/0.325);
-            if (speed < 0.01){
+
+            // limit ctrl range
+            if(fabs(ctrl) > 60.0 * M_PI / 180.0){ 
+                printf("CTRL over range\n");
+                if(ctrl > 0)
+                    ctrl = 60.0 * M_PI / 180.0;
+                else
+                    ctrl = - 60.0 * M_PI / 180.0;
+            }
+
+            // calculate speed according to ctrl
+                
+            speed = (0.1 - 2) / (50.0 * M_PI / 180.0) * fabs(ctrl) + 2; // speed ranges from 2 to 0.1, according to ctrl
+            if(speed < 0.1)
                 speed = 0.1;
-            }
-            if (speed > 2.0){
-                speed = 2.0;
-            }
-            double diff = atan2((current_goal.y - robot_pose.y), (current_goal.x- robot_pose.x)) - robot_pose.th;
-
-            if (diff > M_PI){
-                diff = diff - 2* M_PI;
-            }
-            else if (diff < -M_PI){
-                diff = 2* M_PI + diff;
-            }
-
-            if(ctrl > 60.0 * M_PI / 180.0){ // if ctrl goes over 60 degrees
-                printf("CTRL over 60\n");
-                ctrl = 60.0 * M_PI / 180.0;
-            }
-            else if(ctrl < -60.0 * M_PI / 180.0){ // if ctrl goes under -60 degrees
-                printf("CTRL over -60\n");
-                ctrl = -60.0 * M_PI / 180.0;
-            }
-
-            if (fabs(ctrl - diff) >= 0.2){
-                speed = 0.1;
-            }
-
-            // printf("ctrl-diff: %f\n", speed, fabs(ctrl-diff));
-
-            // printf("ctrl_fixed: %f\n", ctrl);
+                
             setcmdvel(speed, ctrl);
 
             // step 2
@@ -296,26 +307,21 @@ int main(int argc, char** argv){
 
             // step 3
             if(distance(robot_pose, current_goal) < 0.2){
+                
                 look_ahead_idx++;
                 current_goal.x = path_RRT[look_ahead_idx].x;
                 current_goal.y = path_RRT[look_ahead_idx].y;
                 current_goal.th = path_RRT[look_ahead_idx].th;
                 pid_ctrl.reset();
+
             }
-            for (int i = 0; i<3; i++){
-                if (distance(robot_pose, waypoints[i]) < 0.2){
-                    printf("waypoint %d reached\n", i);
-                }
-            }
-            // else{
-            //     speed = 1.0;
-            // }
+
             if (look_ahead_idx >= path_RRT.size())
                 state = FINISH;
-            
+                
             ros::spinOnce();
             control_rate.sleep();
-	    
+
         } break;
 
         case FINISH: {
@@ -342,15 +348,20 @@ void generate_path_RRT()
      * 4.  when you store path, you have to reverse the order of points in the generated path since BACKTRACKING makes a path in a reverse order (goal -> start).
      * 5. end
      */
-    
+
+    point pre_leaf;
     for(int i = 0; i < (waypoints.size() - 1); i++){ // initial point is waypoints[0]
-        printf("waypoint_size: %d\n", waypoints.size());
-        printf("%d th path\n", i);
+        printf("to waypoint: %d/%d\n", i+1, waypoints.size());
         point x_init = waypoints[i];
         point x_goal = waypoints[i + 1];
+        if (i > 0){
+            //printf("positive i\n");
+            x_init = pre_leaf;
+        }
         rrtTree *tree;
         tree = new rrtTree(x_init, x_goal, map, map_origin_x, map_origin_y, res, margin);
         printf("%d th tree\n", i);
+        //printf("x_init: (%f, %f)\n", x_init.x, x_init.y);
         int valid = tree->generateRRT(world_x_max, world_x_min, world_y_max, world_y_min, K, MaxStep);
         while (valid == 0){
             delete tree;
@@ -362,27 +373,34 @@ void generate_path_RRT()
         // Check plz
         std::vector<traj> temp_path = tree->backtracking_traj();
         printf("%d th backtrack\n", i);
-
-        tree->visualizeTree(temp_path);
         
-        int iter_max = temp_path.size();
+
+        //tree->visualizeTree(temp_path);
+        tree->visualizeTree();
+
+        pre_leaf = { temp_path[0].x, temp_path[0].y, temp_path[0].th };
+        // traj tmp1 = temp_path[0];
+        // traj tmp2 = temp_path[temp_path.size()-1];
+        // printf("path begin: (%f, %f), path end: (%f, %f)\n", tmp2.x, tmp2.y, tmp1.x, tmp1.y);
+        // printf("size: %d\n", temp_path.size());
+        
+        // int iter_max = temp_path.size();
         // temp_path.pop_back(); // skip first point
-        for(int j = 0; j < iter_max; j++){
-            path_RRT.push_back(temp_path.back());
-            temp_path.pop_back();
+        // for(int j = 0; j < iter_max; j++){
+        //     path_RRT.push_back(temp_path.back());
+        //     temp_path.pop_back();
+        // }
+
+        for(int j = temp_path.size() - 1; j >= 0; j--){
+            path_RRT.push_back(temp_path[j]);
         }
+        
+
 
         // printf("waypoint %d: %d\n", i+1, path_RRT.size());
         printf("%d th iteration\n", i);
 
         delete tree;
-
-        point leaf;
-        leaf.x = path_RRT.back().x; leaf.y = path_RRT.back().y;
-
-        // printf("x, y, th, %f, %f, %f\n", x_goal.x, x_goal.y, x_goal.th);
-        waypoints[i+1] = leaf;
-        // printf("x, y, th, %f, %f, %f\n", leaf.x, leaf.y, leaf.th);
     }
 
 }
@@ -401,7 +419,7 @@ void set_waypoints()
     waypoint_candid[3].th = 0.0;
 
     int order[] = {3,1,2,3};
-    int order_size = 4;
+    int order_size = 3;
 
     for(int i = 0; i < order_size; i++){
         waypoints.push_back(waypoint_candid[order[i]]);
