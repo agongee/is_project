@@ -117,7 +117,7 @@ void rrtTree::visualizeTree(){
     // cv::waitKey(1);
     cv::namedWindow("Mapping");
     cv::imshow("Mapping", imgResult);
-    cv::waitKey(1);
+    cv::waitKey(0);
 }
 
 void rrtTree::visualizeTree(std::vector<traj> path){
@@ -269,6 +269,7 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
 
     if (it == K){
         printf("Sadly...\n");
+        this->visualizeTree();
         return 0;
     }
 
@@ -286,8 +287,8 @@ point rrtTree::randomState(double x_max, double x_min, double y_max, double y_mi
 
     x_rand.x = random_gen(x_min, x_max);
     x_rand.y = random_gen(y_min, y_max);
-    x_rand.th = atan2(x_rand.y, x_rand.x); // ok?
-    // x_rand.th = random_gen(-PI, PI); // ok??????
+    // x_rand.th = atan2(x_rand.y, x_rand.x); // ok?
+    x_rand.th = random_gen(-PI, PI); // ok??????
 
     return x_rand;
 

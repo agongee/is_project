@@ -454,14 +454,22 @@ void set_waypoints()
     point waypoint_candid[5];
     waypoint_candid[0].x = -3.5;
     waypoint_candid[0].y = 12.0;
-    waypoint_candid[1].x = 2.0;
-    waypoint_candid[1].y = 12.0;
-    waypoint_candid[2].x = 3.5;
-    waypoint_candid[2].y = -10.5;
-    waypoint_candid[3].x = -2.0;
-    waypoint_candid[3].y = -12.0;
+    // waypoint_candid[1].x = 2.0;
+    // waypoint_candid[1].y = 12.0;
+    // waypoint_candid[2].x = 3.5;
+    // waypoint_candid[2].y = -10.5;
+    // waypoint_candid[3].x = -2.0;
+    // waypoint_candid[3].y = -12.0;
+    waypoint_candid[1].x = 2.6;
+    waypoint_candid[1].y = 11.975;
+    waypoint_candid[2].x = 2.4;
+    waypoint_candid[2].y = -11.975;
+    waypoint_candid[3].x = -2.8;
+    waypoint_candid[3].y = -12.025;
     waypoint_candid[4].x = -3.5;
-    waypoint_candid[4].y = 10.0;
+    // waypoint_candid[4].y = 10.0;
+    waypoint_candid[4].y = 12.0;
+
 
     int order[] = {0,1,2,3,4};
     int order_size = 5;
