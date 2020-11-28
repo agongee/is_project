@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(project3)
+project(project4)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -18,9 +18,22 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   project2
 )
+
+# Find Eigen3 (from http://wiki.ros.org/jade/Migration)
+#find_package(Eigen3)
+#if(NOT EIGEN3_FOUND)
+  # Fallback to cmake_modules
+  #find_package(cmake_modules REQUIRED)
+  #find_package(Eigen REQUIRED)
+  #set(EIGEN3_INCLUDE_DIRS ${EIGEN_INCLUDE_DIRS})
+  #set(EIGEN3_LIBRARIES ${EIGEN_LIBRARIES})  # Not strictly necessary as Eigen is head only
+  # Possibly map additional variables to the EIGEN3_ prefix.
+#else()
+  #set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
+#endif()
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -89,7 +102,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES project3
+#  LIBRARIES project4
 #  CATKIN_DEPENDS cv_bridge gazebo_msgs geometry_msgs joy nav_msgs roscpp rospy sensor_msgs tf
 #  DEPENDS system_lib
 )
@@ -100,31 +113,32 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-#set(ROOT_DIR ~/catkin_ws/src/project2/include/project2)
+#set(ROOT_DIR ~/catkin_ws/src/project4/include/project4)
 include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  #${EIGEN3_INCLUDE_DIRS}
 )
-include_directories(${PROJECT2_INCLUDE_DIRS})
+include_directories(${PROJECT4_INCLUDE_DIRS})
 #include_directories(${ROOT_DIR})
 include_directories(${GAZEBO_INCLUDE_DIRS})
 link_directories(${GAZEBO_LIBRARY_DIRS})
 #add_library(Utility SHARED "${ROOT_DIR}/pid.cpp" "${ROOT_DIR}/rrtTree.cpp") 
 
 ## Declare a cpp library
-# add_library(project3
-#   src/${PROJECT_NAME}/project3.cpp
+# add_library(project4
+#   src/${PROJECT_NAME}/project4.cpp
 # )
 
 ## Declare a cpp executable
-# add_executable(project2_node src/project2_node.cpp)
+# add_executable(project4_node src/project4_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(project2_node project2_generate_messages_cpp)
+# add_dependencies(project4_node project4_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(project2_node
+# target_link_libraries(project4_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -143,7 +157,7 @@ link_directories(${GAZEBO_LIBRARY_DIRS})
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS project3 project3_node
+# install(TARGETS project4 project4_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -179,11 +193,14 @@ link_directories(${GAZEBO_LIBRARY_DIRS})
 #############
 ## custom  ##
 
-#add_executable(project3 src/main.cpp include/project3/rrtTree.cpp include/project3/pid.cpp)
-add_executable(project3 src/main.cpp)
-target_link_libraries(project3
+add_executable(project4 src/main.cpp)
+target_link_libraries(project4
    ${catkin_LIBRARIES} ${GAZEBO_INCLUDE_DIRS} ${RRT_LIBRARIES}
 )
+
+#add_library(map_saver include/project4/map_saver.cpp)
+#target_link_libraries(map_saver ${catkin_LIBRARIES} ${QT_LIBRARIES})
+#add_dependencies(map_saver ${catkin_EXPORTED_TARGETS})
 
 #add_executable(odometry src/odometry.cpp)
 #target_link_libraries(odometry
@@ -191,6 +208,6 @@ target_link_libraries(project3
 #)
 #############
 catkin_install_python(PROGRAMS
-	scripts/gazebo_odometry.py
+	scripts/gazebo_odometry_prj4.py
 	DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

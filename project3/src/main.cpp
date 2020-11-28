@@ -31,8 +31,8 @@ double world_y_max;
 
 //parameters we should adjust : K, margin, MaxStep
 //int margin = 8;
-int margin = 5;
-int K = 20000;
+int margin = 7;
+int K = 15000;
 double MaxStep = 1.5;
 
 //way points
@@ -94,49 +94,93 @@ int main(int argc, char** argv){
     set_waypoints();
     printf("Set way points\n");
 
-    double RES = 2;
-    cv::Mat map_margin = map.clone();
-    int xSize = map_margin.cols;
-    int ySize = map_margin.rows;
-    for (int i = 0; i < ySize; i++) {
-        for (int j = 0; j < xSize; j++) {
-            if (map.at<uchar>(i, j) < 125) {
-                for (int k = i - margin; k <= i + margin; k++) {
-                    for (int l = j - margin; l <= j + margin; l++) {
-                        if (k >= 0 && l >= 0 && k < ySize && l < xSize) {
-                            map_margin.at<uchar>(k, l) = 0;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    cv::Mat map_copy = map_margin.clone();
-    cv::cvtColor(map_copy, map_copy, CV_GRAY2BGR);
-    cv::resize(map_copy, map_copy, cv::Size(), 2, 2);
-    for(int i = 0; i < waypoints.size(); i++){
-        std::vector<cv::Scalar> colors;
-        colors.push_back(cv::Scalar(0, 0, 255));
-        colors.push_back(cv::Scalar(0, 128, 255));
-        colors.push_back(cv::Scalar(0, 255, 255));
-        colors.push_back(cv::Scalar(0, 255, 0));
-        colors.push_back(cv::Scalar(255, 0, 0));
-        colors.push_back(cv::Scalar(255, 0, 128));
-        printf("waypoints[%d]: (%f, %f)\n", i, waypoints[i].x, waypoints[i].y);
-        int y = RES*(waypoints[i].x/res + map_origin_x);
-        int x = RES*(waypoints[i].y/res + map_origin_y);
-        cv::circle(map_copy, cv::Point(x, y), 5, colors[i % colors.size()], cv::FILLED, 8);
-    }
-
-    cv::namedWindow("waypoints");
-    cv::imshow("waypoints", map_copy);
+    // double RES = 2;
+    // cv::Mat map_margin = map.clone();
+    // int xSize = map_margin.cols;
+    // int ySize = map_margin.rows;
+    // for (int i = 0; i < ySize; i++) {
+    //     for (int j = 0; j < xSize; j++) {
+    //         if (map.at<uchar>(i, j) < 125) {
+    //             for (int k = i - margin; k <= i + margin; k++) {
+    //                 for (int l = j - margin; l <= j + margin; l++) {
+    //                     if (k >= 0 && l >= 0 && k < ySize && l < xSize) {
+    //                         map_margin.at<uchar>(k, l) = 0;
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+    // cv::Mat map_copy = map_margin.clone();
+    // cv::cvtColor(map_copy, map_copy, CV_GRAY2BGR);
+    // cv::resize(map_copy, map_copy, cv::Size(), 2, 2);
+    // for(int i = 0; i < waypoints.size(); i++){
+    //     std::vector<cv::Scalar> colors;
+    //     colors.push_back(cv::Scalar(0, 0, 255));
+    //     colors.push_back(cv::Scalar(0, 128, 255));
+    //     colors.push_back(cv::Scalar(0, 255, 255));
+    //     colors.push_back(cv::Scalar(0, 255, 0));
+    //     colors.push_back(cv::Scalar(255, 0, 0));
+    //     colors.push_back(cv::Scalar(255, 0, 128));
+    //     printf("waypoints[%d]: (%f, %f)\n", i, waypoints[i].x, waypoints[i].y);
+    //     int y = RES*(waypoints[i].x/res + map_origin_x);
+    //     int x = RES*(waypoints[i].y/res + map_origin_y);
+    //     cv::circle(map_copy, cv::Point(x, y), 5, colors[i % colors.size()], cv::FILLED, 8);
+    // }
+    // cv::namedWindow("waypoints");
+    // cv::imshow("waypoints", map_copy);
     // cv::waitKey(0);
-    printf("map size: %d * %d\n", map_copy.rows, map_copy.cols);
+    // printf("map size: %d * %d\n", map_copy.rows, map_copy.cols);
 
     // RRT
-    printf("Start Generate RRT\n");
     generate_path_RRT();
     printf("Generate RRT\n");
+
+    int MAXIT = path_RRT.size();
+    for (int i=0; i<MAXIT-1; i++){
+        if(path_RRT[i].x == path_RRT[i+1].x && path_RRT[i].y == path_RRT[i+1].y){
+            path_RRT.erase(path_RRT.begin()+i);
+            MAXIT--;
+        }
+    }
+
+    // double RES = 2;
+    // cv::Mat map_margin = map.clone();
+    // int xSize = map_margin.cols;
+    // int ySize = map_margin.rows;
+    // for (int i = 0; i < ySize; i++) {
+    //     for (int j = 0; j < xSize; j++) {
+    //         if (map.at<uchar>(i, j) < 125) {
+    //             for (int k = i - margin; k <= i + margin; k++) {
+    //                 for (int l = j - margin; l <= j + margin; l++) {
+    //                     if (k >= 0 && l >= 0 && k < ySize && l < xSize) {
+    //                         map_margin.at<uchar>(k, l) = 0;
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+    // cv::Mat map_copy = map_margin.clone();
+    // cv::cvtColor(map_copy, map_copy, CV_GRAY2BGR);
+    // cv::resize(map_copy, map_copy, cv::Size(), 2, 2);
+    // std::vector<cv::Scalar> colors;
+    // colors.push_back(cv::Scalar(0, 0, 255));
+    // colors.push_back(cv::Scalar(0, 128, 255));
+    // colors.push_back(cv::Scalar(0, 255, 255));
+    // colors.push_back(cv::Scalar(0, 255, 0));
+    // colors.push_back(cv::Scalar(255, 0, 0));
+    // colors.push_back(cv::Scalar(255, 0, 128));
+
+    // for(int i = 0; i < path_RRT.size(); i++){
+    //     // printf("waypoints[%d]: (%f, %f)\n", i, waypoints[i].x, waypoints[i].y);
+    //     int y = RES*(path_RRT[i].x/res + map_origin_x);
+    //     int x = RES*(path_RRT[i].y/res + map_origin_y);
+    //     cv::circle(map_copy, cv::Point(x, y), 5, colors[i % colors.size()], cv::FILLED, 8);
+    // }
+    // cv::namedWindow("path_RRT");
+    // cv::imshow("path_RRT", map_copy);
+    // cv::waitKey(0);
 
     // FSM
     state = INIT;
@@ -348,6 +392,7 @@ void generate_path_RRT()
      * 5. end
      */
 
+
     point pre_leaf;
     for(int i = 0; i < (waypoints.size() - 1); i++){ // initial point is waypoints[0]
         printf("to waypoint: %d/%d\n", i+1, waypoints.size());
@@ -374,12 +419,12 @@ void generate_path_RRT()
         printf("%d th backtrack\n", i);
         
 
-        //tree->visualizeTree(temp_path);
-        tree->visualizeTree();
+        // tree->visualizeTree(temp_path);
+        // tree->visualizeTree();
 
         pre_leaf = { temp_path[0].x, temp_path[0].y, temp_path[0].th };
-        // traj tmp1 = temp_path[0];
-        // traj tmp2 = temp_path[temp_path.size()-1];
+        traj tmp1 = temp_path[0];
+        traj tmp2 = temp_path[temp_path.size()-1];
         // printf("path begin: (%f, %f), path end: (%f, %f)\n", tmp2.x, tmp2.y, tmp1.x, tmp1.y);
         // printf("size: %d\n", temp_path.size());
         

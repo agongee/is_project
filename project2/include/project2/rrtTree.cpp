@@ -5,8 +5,8 @@
 
 #define MAX_TABLE 20000
 
-//double max_alpha = 0.2; // maximum steering angle of front wheels --> alpha is in -max_alpha ~ max_alpha
-double max_alpha = 0.2;
+double max_alpha = 0.35; // maximum steering angle of front wheels --> alpha is in -max_alpha ~ max_alpha
+//double max_alpha = 0.35;
 double L = 0.325; // length of the RC car
 
 rrtTree::rrtTree() {
@@ -117,7 +117,7 @@ void rrtTree::visualizeTree(){
     // cv::waitKey(1);
     cv::namedWindow("Mapping");
     cv::imshow("Mapping", imgResult);
-    // cv::waitKey(1);
+    cv::waitKey(1);
 }
 
 void rrtTree::visualizeTree(std::vector<traj> path){
@@ -176,7 +176,7 @@ void rrtTree::visualizeTree(std::vector<traj> path){
 
     cv::namedWindow("Mapping");
     cv::imshow("Mapping", imgResult);
-    // cv::waitKey(1);
+    cv::waitKey(1);
 
 }
 // Done
@@ -209,14 +209,21 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
 
     //this->generator.seed(time(NULL));
     // random init
-    std::srand(static_cast<unsigned int>(std::time(0)));
+    // unsigned int seed = static_cast<unsigned int>(std::time(0));
+    // unsigned int seed = 1605966912;
+    // std::srand(seed);
+    std::srand(std::time(NULL));
+    // printf("RANDOM SEED: %u\n", seed);
+    
+    
 
-    double dist_thresh = 0.1;				// tune this parameter
+    double dist_thresh = 0.2;				// tune this parameter
     int it = 0;						// iteration : minimum K
     double closest_dist = distance(this->x_init, this->x_goal);	// current closest distance from a node to goal
 
     //while ( it < K || closest_dist > dist_thresh ){
     for (it = 0; it < K; it ++){
+
         // step 1
         point x_rand;
 
