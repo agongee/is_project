@@ -269,7 +269,7 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
 
     if (it == K){
         printf("Sadly...\n");
-        this->visualizeTree();
+        // this->visualizeTree();
         return 0;
     }
 

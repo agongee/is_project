@@ -35,7 +35,7 @@ double world_y_max;
 // double MaxStep = 2;
 // int waypoint_margin = 24;
 int margin = 7;
-int K = 2000;
+int K = 1000;
 double MaxStep = 1.5;
 int waypoint_margin = 24;
 
@@ -410,13 +410,14 @@ void generate_path_RRT()
         int valid = tree->generateRRT(world_x_max, world_x_min, world_y_max, world_y_min, K, MaxStep);
         while (valid == 0){
             count++;
+            double max_alpha = 0.4;
             delete tree;
             if (i > 0) {
                 if (count <= 10){
-                    x_init.th = random_gen(prev_th2 - 0.3, prev_th2 + 0.3);
+                    x_init.th = random_gen(prev_th2 - max_alpha, prev_th2 + max_alpha);
                 }
                 else if (count > 10){
-                    x_init.th = random_gen(prev_th - 0.3, prev_th + 0.3);
+                    x_init.th = random_gen(prev_th - max_alpha, prev_th + max_alpha);
                 }
                 if (count == 20){
                     count = 0;
