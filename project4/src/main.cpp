@@ -35,8 +35,8 @@ double world_y_max;
 // double MaxStep = 2;
 // int waypoint_margin = 24;
 int margin = 7;
-int K = 15000;
-double MaxStep = 0.75;
+int K = 2000;
+double MaxStep = 1.5;
 int waypoint_margin = 24;
 
 //way points
@@ -387,21 +387,41 @@ void generate_path_RRT()
 
 
     point pre_leaf;
+    double prev_th;
+    double prev_th2;
+    int count = 0;
     for(int i = 0; i < (waypoints.size() - 1); i++){ // initial point is waypoints[0]
         printf("to waypoint: %d/%d\n", i+1, waypoints.size());
         point x_init = waypoints[i];
         point x_goal = waypoints[i + 1];
-        // if (i > 0){
-        //     //printf("positive i\n");
-        //     x_init = pre_leaf;
-        // }
+        if (i > 0){
+            //printf("positive i\n");
+            x_init = pre_leaf;
+            prev_th = atan2(x_goal.y - x_init.y, x_goal.x - x_init.x);
+            double new_th = random_gen(prev_th - 0.3, prev_th + 0.3);
+            x_init.th = new_th;
+            
+
+        }
         rrtTree *tree;
         tree = new rrtTree(x_init, x_goal, map, map_origin_x, map_origin_y, res, margin);
         printf("%d th tree\n", i);
         //printf("x_init: (%f, %f)\n", x_init.x, x_init.y);
         int valid = tree->generateRRT(world_x_max, world_x_min, world_y_max, world_y_min, K, MaxStep);
         while (valid == 0){
+            count++;
             delete tree;
+            if (i > 0) {
+                if (count <= 10){
+                    x_init.th = random_gen(prev_th2 - 0.3, prev_th2 + 0.3);
+                }
+                else if (count > 10){
+                    x_init.th = random_gen(prev_th - 0.3, prev_th + 0.3);
+                }
+                if (count == 20){
+                    count = 0;
+                }
+            }
             tree = new rrtTree(x_init, x_goal, map, map_origin_x, map_origin_y, res, margin);
             valid = tree->generateRRT(world_x_max, world_x_min, world_y_max, world_y_min, K, MaxStep);
         }
@@ -411,11 +431,13 @@ void generate_path_RRT()
         std::vector<traj> temp_path = tree->backtracking_traj();
         printf("%d th backtrack\n", i);
         
-
         // tree->visualizeTree(temp_path);
         // tree->visualizeTree();
+        // prev_th = atan2(x_goal.y - x_init.y, x_goal.x - x_init.x);
+        
+        prev_th2 = temp_path[0].th;
 
-        pre_leaf = { temp_path[0].x, temp_path[0].y, temp_path[0].th };
+        pre_leaf = { temp_path[0].x, temp_path[0].y, 0 };
         traj tmp1 = temp_path[0];
         traj tmp2 = temp_path[temp_path.size()-1];
         // printf("path begin: (%f, %f), path end: (%f, %f)\n", tmp2.x, tmp2.y, tmp1.x, tmp1.y);

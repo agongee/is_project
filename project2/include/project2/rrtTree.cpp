@@ -5,7 +5,7 @@
 
 #define MAX_TABLE 20000
 
-double max_alpha = 0.35; // maximum steering angle of front wheels --> alpha is in -max_alpha ~ max_alpha
+double max_alpha = 0.2; // maximum steering angle of front wheels --> alpha is in -max_alpha ~ max_alpha
 //double max_alpha = 0.35;
 double L = 0.325; // length of the RC car
 
@@ -227,7 +227,7 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
         // step 1
         point x_rand;
 
-        if (it % 3 ==0){
+        if (it % 5 ==0){
             x_rand = this->x_goal;
         }
         else{
