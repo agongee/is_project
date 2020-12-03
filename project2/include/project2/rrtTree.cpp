@@ -1,6 +1,8 @@
 #include "rrtTree.h"
 #include <unistd.h>
 #include <ros/ros.h>
+//algorithm library added
+#include <algorithm>
 #define PI 3.14159265358979323846
 
 #define MAX_TABLE 20000
@@ -200,6 +202,8 @@ void rrtTree::addVertex(point x_new, point x_rand, int idx_near, double alpha, d
     new_node->idx = this->count;	
     this->count++;
 
+    new_node->dist = distance(x_new, this->ptrTable[idx_near]);
+
     ptrTable[new_node->idx] = new_node;
     
 }
@@ -245,9 +249,15 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
         double out[5];
         bool invalid = this->randompath(out, x_near, x_rand, MaxStep);
         if (invalid){
-            continue;
+            for (int validcount = 0; validcount < 10; validcount++){
+                invalid = this->randompath(out, x_near, x_rand, MaxStep);
+                if (!invalid) break;
+            }
         }
+        if (invalid) continue;
         point x_new = {out[0], out[1], out[2]};
+
+        idx_near = this->reconnect(x_new);
 
         // step 4
         this->addVertex(x_new, x_rand, idx_near, out[3], out[4]);
@@ -268,7 +278,7 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
     }
 
     if (it == K){
-        printf("Sadly...\n");
+        printf("Sadly... \n");
         // this->visualizeTree();
         return 0;
     }
@@ -647,6 +657,36 @@ std::vector<traj> rrtTree::backtracking_traj(){
     return result;	// doesnt contain root currently, but should it?
     
 }
+
+int rrtTree::reconnect(point x_new) {
+
+    int K = 10;
+    int near_idx [10];
+    this->KnearestNeighbors(near_idx, x_new, K);
+
+    int min_dist = -1;
+    int min_idx = -1;
+
+    for (int i = 0; i < K; i++){
+        int curr_idx = near_idx[i];
+        int dist = 0;
+
+        while (curr_idx > 0){
+            dist += this->ptrTable[curr_idx]->dist;
+            curr_idx = this->ptrTable[curr_idx]->idx_parent;
+        }
+
+        if (min_idx < 0 || min_dist > dist){
+            min_dist = dist;
+            min_idx = near_idx[i];
+        }
+
+    }
+
+    return min_idx;
+    
+}
+
 
 double distance(point p1, point p2){
 

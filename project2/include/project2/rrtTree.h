@@ -24,6 +24,7 @@ private:
         point rand;
         point location;
         int idx_parent;
+        double dist;
 	    double alpha;
 	    double d;
     }*root;
@@ -40,9 +41,12 @@ private:
     void addVertex(point x_new, point x_rand, int idx_near, double alpha, double d);
     int nearestNeighbor(point x_rand, double MaxStep);
     int nearestNeighbor(point x_rand);
+    //added KnearestNeighbors
+    void KnearestNeighbors(int *out, point x_rand, int k);
     bool isCollision(point x1, point x2, double d, double R);
     point randomState(double x_max, double x_min, double y_max, double y_min);
     int randompath(double *out, point x_near, point x_rand, double MaxStep);
+    int reconnect(point x_new);
 
 public:
     rrtTree();
