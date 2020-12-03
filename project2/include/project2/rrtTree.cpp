@@ -202,7 +202,7 @@ void rrtTree::addVertex(point x_new, point x_rand, int idx_near, double alpha, d
     new_node->idx = this->count;	
     this->count++;
 
-    new_node->dist = distance(x_new, this->ptrTable[idx_near]);
+    new_node->dist = distance(x_new, this->ptrTable[idx_near]->location);
 
     ptrTable[new_node->idx] = new_node;
     
@@ -257,7 +257,7 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
         if (invalid) continue;
         point x_new = {out[0], out[1], out[2]};
 
-        idx_near = this->reconnect(x_new);
+        idx_near = this->reconnect(x_new, MaxStep);
 
         // step 4
         this->addVertex(x_new, x_rand, idx_near, out[3], out[4]);
@@ -407,6 +407,27 @@ int rrtTree::nearestNeighbor(point x_rand) {
 
     return min_idx;
 
+}
+
+int rrtTree::KnearestNeighbors(int* out, point x_new, int k, double MaxStep){
+    /*
+    out: array of k_nearest indexes
+    x_new: target point (found by nearestneighbor)
+    k: find K-nearest neighbors
+
+    sorts the tree by distance between the node and the target node
+    check at most 20 closest nodes and check for collisions
+    returns the number of output array (at most k)
+    */
+    node* node_array = new node[k];
+    int* dist_array = new int[k];
+    
+    for (int i = 0; i < this->count; i++){
+        if (this->ptrTable[i] == NULL) continue;
+
+    }
+    
+    
 }
 
 int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep) {
@@ -658,16 +679,16 @@ std::vector<traj> rrtTree::backtracking_traj(){
     
 }
 
-int rrtTree::reconnect(point x_new) {
+int rrtTree::reconnect(point x_new, double MaxStep) {
 
     int K = 10;
     int near_idx [10];
-    this->KnearestNeighbors(near_idx, x_new, K);
+    int max_iter = this->KnearestNeighbors(near_idx, x_new, K, MaxStep);
 
     int min_dist = -1;
     int min_idx = -1;
 
-    for (int i = 0; i < K; i++){
+    for (int i = 0; i < max_iter; i++){
         int curr_idx = near_idx[i];
         int dist = 0;
 
@@ -703,4 +724,8 @@ double random_gen(double min_val, double max_val){
     while( result == 0 )
         result = min_val + double(std::rand())/RAND_MAX * (max_val - min_val);
     return result;   
+}
+
+void sortByDistance(rrtTree::node* index_points, int count, point x_new){
+    std::sort(index_points, index_points+count, DistanceFunc(x_new));
 }
