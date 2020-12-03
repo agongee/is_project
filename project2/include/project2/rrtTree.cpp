@@ -208,6 +208,32 @@ void rrtTree::addVertex(point x_new, point x_rand, int idx_near, double alpha, d
     
 }
 
+void rrtTree::addVertexStar(point x_new, point x_rand, int idx_near, double cost, double alpha, double d) {
+
+    // add new vertex to tree
+    // tree is an array of the node
+
+    if (this->count == MAX_TABLE){
+        std::cout << "error: Full Table" << std::endl;
+        return;
+    }
+
+    node *new_node = new node;
+
+    new_node->location = x_new;
+    new_node->rand = x_rand;
+    new_node->idx_parent = idx_near;
+    new_node->alpha = alpha;
+    new_node->d = d;
+    new_node->idx = this->count;	
+    this->count++;
+
+    new_node->dist = cost;
+
+    ptrTable[new_node->idx] = new_node;
+    
+}
+
 int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min, int K, double MaxStep) {
     //TODO: check if its okay
 
@@ -257,10 +283,11 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
         if (invalid) continue;
         point x_new = {out[0], out[1], out[2]};
 
-        idx_near = this->reconnect(x_new);
+        double cost = this->reconnect(x_new, idx_near);
+        this->addVertexStar(x_new, x_rand, idx_near, cost, out[3], out[4]);
 
         // step 4
-        this->addVertex(x_new, x_rand, idx_near, out[3], out[4]);
+        //this->addVertex(x_new, x_rand, idx_near, out[3], out[4]);
         //it++;
 
         // update loop conditions
@@ -658,23 +685,18 @@ std::vector<traj> rrtTree::backtracking_traj(){
     
 }
 
-int rrtTree::reconnect(point x_new) {
+int rrtTree::reconnect(point x_new, int & idx_near) {
 
     int K = 10;
     int near_idx [10];
     this->KnearestNeighbors(near_idx, x_new, K);
 
-    int min_dist = -1;
+    double min_dist = -1;
     int min_idx = -1;
 
     for (int i = 0; i < K; i++){
         int curr_idx = near_idx[i];
-        int dist = 0;
-
-        while (curr_idx > 0){
-            dist += this->ptrTable[curr_idx]->dist;
-            curr_idx = this->ptrTable[curr_idx]->idx_parent;
-        }
+        double dist = this->ptrTable[curr_idx]->dist + distance(x_new, this->ptrTable[curr_idx])
 
         if (min_idx < 0 || min_dist > dist){
             min_dist = dist;
@@ -683,7 +705,9 @@ int rrtTree::reconnect(point x_new) {
 
     }
 
-    return min_idx;
+    idx_near = min_idx;
+
+    return min_dist;
     
 }
 
