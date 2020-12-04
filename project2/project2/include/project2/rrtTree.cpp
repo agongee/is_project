@@ -34,7 +34,6 @@ rrtTree::rrtTree(point x_init, point x_goal) {
     root->rand = x_init;
     root->alpha = 0;
     root->d = 0;
-    root->dist = 0;
 }
 
 rrtTree::~rrtTree(){
@@ -257,6 +256,7 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
 
         // step 1
         point x_rand;
+
         if (it % 5 ==0){
             x_rand = this->x_goal;
         }
@@ -271,7 +271,6 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
         }
 
         point x_near = ptrTable[idx_near]->location;
-
         // step 3
         double out[5];
         bool invalid = this->randompath(out, x_near, x_rand, MaxStep);
@@ -283,8 +282,13 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
         }
         if (invalid) continue;
         point x_new = {out[0], out[1], out[2]};
-        double cost = this->reconnect(x_new, idx_near, MaxStep);
+
+<<<<<<< HEAD
+        idx_near = this->reconnect(x_new, MaxStep);
+=======
+        double cost = this->reconnect(x_new, idx_near);
         this->addVertexStar(x_new, x_rand, idx_near, cost, out[3], out[4]);
+>>>>>>> e30905400d8ac2f9bf3de3be8f517605a68ce3c2
 
         // step 4
         //this->addVertex(x_new, x_rand, idx_near, out[3], out[4]);
@@ -306,7 +310,7 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
 
     if (it == K){
         printf("Sadly... \n");
-        this->visualizeTree();
+        // this->visualizeTree();
         return 0;
     }
 
@@ -446,42 +450,15 @@ int rrtTree::KnearestNeighbors(int* out, point x_new, int k, double MaxStep){
     check at most 20 closest nodes and check for collisions
     returns the number of output array (at most k)
     */
-    std::vector<nodeDist> node_array;
-    int itr_count = 0;
-    double trash[5];
-
+    node* node_array = new node[k];
+    int* dist_array = new int[k];
+    
     for (int i = 0; i < this->count; i++){
         if (this->ptrTable[i] == NULL) continue;
-        if (itr_count < k){
-            int invalid = randompath(trash, this->ptrTable[i]->location, x_new, MaxStep);
-            if (invalid) continue;
-            nodeDist temp_nodedist;
-            temp_nodedist.temp_node = *(this->ptrTable[i]);
-            temp_nodedist.dist = distance(this->ptrTable[i]->location, x_new);
-            node_array.push_back(temp_nodedist);
-            itr_count++;
-        }
-        else {
-            double temp_dist = distance(this->ptrTable[i]->location, x_new);
-            printf("itr_count: %d\n", itr_count);
-            if (temp_dist < node_array.back().dist) {
-                int invalid = randompath(trash, this->ptrTable[i]->location, x_new, MaxStep);
-                if (invalid) continue;
-                node_array.pop_back();
-                nodeDist temp_nodedist;
-                temp_nodedist.temp_node = *(this->ptrTable[i]);
-                temp_nodedist.dist = temp_dist;
-                node_array.push_back(temp_nodedist);
-            }
-        }
-        sortByDistance(node_array, itr_count);
-    }
 
-    for (int i = 0; i< k; i++){
-        if (i > itr_count) out[i] = NULL;
-        out[i] = node_array[i].temp_node.idx;
     }
-    return itr_count;
+    
+    
 }
 
 int rrtTree::randompath(double *out, point x_near, point x_rand, double MaxStep) {
@@ -625,17 +602,80 @@ bool rrtTree::isCollision(point x1, point x2, double d, double R) {
     // memo: unknown region not considered
 }
 
+// std::vector<traj> rrtTree::backtracking_traj(){
+//     //TODO
+//     std::vector<traj> result;
+
+//     traj tmp_goal;
+// 	tmp_goal.x = this->x_goal.x;
+// 	tmp_goal.y = this->x_goal.y;
+// 	tmp_goal.th = this->x_goal.th;
+// 	tmp_goal.alpha = 0;
+// 	tmp_goal.d = 0;
+// 	result.push_back(tmp_goal);
+    
+//     int curr_idx = this->nearestNeighbor(this->x_goal);
+//     point t;
+//     t.x = tmp_goal.x; t.y = tmp_goal.y; t.th = tmp_goal.th;
+//     point leaf;
+//     leaf.x = this->ptrTable[curr_idx]->location.x;
+//     leaf.y = this->ptrTable[curr_idx]->location.y;
+//     leaf.th = this->ptrTable[curr_idx]->location.th;
+//     printf("distance between leaf and waypoint: %f\n", distance(leaf, t));
+//     while (curr_idx > 0){
+// 	// temporary trajectory
+//         traj tmp_t;
+//         tmp_t.x = this->ptrTable[curr_idx]->location.x;
+//         tmp_t.y = this->ptrTable[curr_idx]->location.y;
+//         tmp_t.th = this->ptrTable[curr_idx]->location.th;
+//         tmp_t.alpha = this->ptrTable[curr_idx]->alpha;
+//         tmp_t.d = this->ptrTable[curr_idx]->d;
+//         result.push_back(tmp_t);
+
+//         if (curr_idx == 0){
+//             break;
+//         }
+
+//         curr_idx = this->ptrTable[curr_idx]->idx_parent;	// should choose among parents, but not considered yet!!!!
+//         // printf("curr_idx: %d\n", curr_idx);
+//     }
+    
+    
+
+//     // for (int i=0;i<result.size();i++)
+//         // printf("result: (%f, %f)\n", result[i].x, result[i].y);
+//     //add root to path
+//     // printf("current index: %d\n", curr_idx);
+//     // tmp_t.x = this->ptrTable[curr_idx]->location.x;
+// 	// tmp_t.y = this->ptrTable[curr_idx]->location.y;
+// 	// tmp_t.th = this->ptrTable[curr_idx]->location.th;
+// 	// tmp_t.alpha = this->ptrTable[curr_idx]->alpha;
+// 	// tmp_t.d = this->ptrTable[curr_idx]->d;
+    
+//     return result;	// doesnt contain root currently, but should it?
+    
+// }
 std::vector<traj> rrtTree::backtracking_traj(){
     //TODO
     std::vector<traj> result;
+
+    // traj tmp_goal;
+	// tmp_goal.x = this->x_goal.x;
+	// tmp_goal.y = this->x_goal.y;
+	// tmp_goal.th = this->x_goal.th;
+	// tmp_goal.alpha = 0;
+	// tmp_goal.d = 0;
+	// //result.push_back(tmp_goal);
     
     int curr_idx = this->nearestNeighbor(this->x_goal);
-
+    // point t;
+    // t.x = tmp_goal.x; t.y = tmp_goal.y; t.th = tmp_goal.th;
     point leaf = { this->ptrTable[curr_idx]->location.x, this->ptrTable[curr_idx]->location.y, this->ptrTable[curr_idx]->location.th };
-
+    // printf("distance between leaf and waypoint: %f\n", distance(leaf, t));
     int it = 0;
     while (curr_idx >= 0){
 	// temporary trajectory
+        //printf("curr_idx: %d\n", curr_idx);
         leaf = { this->ptrTable[curr_idx]->location.x, this->ptrTable[curr_idx]->location.y, this->ptrTable[curr_idx]->location.th };
         traj tmp_t;
         tmp_t.x = leaf.x;
@@ -650,14 +690,31 @@ std::vector<traj> rrtTree::backtracking_traj(){
             break;
         
         curr_idx = this->ptrTable[curr_idx]->idx_parent;	// should choose among parents, but not considered yet!!!!
+        // printf("curr_idx: %d\n", curr_idx);
 
     }
+    
+    
+
+    // for (int i=0;i<result.size();i++)
+        // printf("result: (%f, %f)\n", result[i].x, result[i].y);
+    //add root to path
+    // printf("current index: %d\n", curr_idx);
+    // tmp_t.x = this->ptrTable[curr_idx]->location.x;
+	// tmp_t.y = this->ptrTable[curr_idx]->location.y;
+	// tmp_t.th = this->ptrTable[curr_idx]->location.th;
+	// tmp_t.alpha = this->ptrTable[curr_idx]->alpha;
+	// tmp_t.d = this->ptrTable[curr_idx]->d;
     
     return result;	// doesnt contain root currently, but should it?
     
 }
 
-int rrtTree::reconnect(point x_new, int & idx_near, double MaxStep) {
+<<<<<<< HEAD
+int rrtTree::reconnect(point x_new, double MaxStep) {
+=======
+int rrtTree::reconnect(point x_new, int & idx_near) {
+>>>>>>> e30905400d8ac2f9bf3de3be8f517605a68ce3c2
 
     int K = 10;
     int near_idx [10];
@@ -668,7 +725,7 @@ int rrtTree::reconnect(point x_new, int & idx_near, double MaxStep) {
 
     for (int i = 0; i < max_iter; i++){
         int curr_idx = near_idx[i];
-        double dist = this->ptrTable[curr_idx]->dist + distance(x_new, this->ptrTable[curr_idx]->location);
+        double dist = this->ptrTable[curr_idx]->dist + distance(x_new, this->ptrTable[curr_idx])
 
         if (min_idx < 0 || min_dist > dist){
             min_dist = dist;
@@ -701,14 +758,6 @@ double random_gen(double min_val, double max_val){
     return result;   
 }
 
-bool compare(nodeDist a, nodeDist b){
-    return a.dist < b.dist;
-}
-
-void sortByDistance(std::vector<nodeDist> index_points, int count){
-    std::sort(index_points.begin(), index_points.end(), compare);
-}
-
-int alpha_path_gen(){
-
+void sortByDistance(rrtTree::node* index_points, int count, point x_new){
+    std::sort(index_points, index_points+count, DistanceFunc(x_new));
 }

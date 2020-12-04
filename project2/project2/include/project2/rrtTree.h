@@ -13,28 +13,22 @@
 #include <project2/control.h>
 #include <project2/traj.h>
 #endif
-struct node
-{
-    int idx;
-    point rand;
-    point location;
-    int idx_parent;
-    double dist;
-    double alpha;
-    double d;
-};
 
-struct nodeDist
-{
-    node temp_node;
-    double dist;
-    traj trash;
-};
 
 class rrtTree
 {
 private:
-    node* root;
+    struct node
+    {
+        int idx;
+        point rand;
+        point location;
+        int idx_parent;
+        double dist;
+	    double alpha;
+	    double d;
+    }*root;
+
     int count; // currently, i'm using it as "number of node in rrtTree"
     point x_init, x_goal;
     cv::Mat map;
@@ -53,7 +47,12 @@ private:
     bool isCollision(point x1, point x2, double d, double R);
     point randomState(double x_max, double x_min, double y_max, double y_min);
     int randompath(double *out, point x_near, point x_rand, double MaxStep);
-    int reconnect(point x_new, int & idx_near, double MaxStep);
+<<<<<<< HEAD
+    //added reconnect
+    int reconnect(point x_new, double MaxStep);
+=======
+    int reconnect(point x_new, int & idx_near);
+>>>>>>> e30905400d8ac2f9bf3de3be8f517605a68ce3c2
 
 public:
     rrtTree();
@@ -69,5 +68,19 @@ public:
 
 double distance(point p1, point p2);
 double random_gen(double min_val, double max_val);
-bool compare(nodeDist a, nodeDist b);
-void sortByDistance(std::vector<nodeDist> index_points, int count);
+void sortByDistance(rrtTree::node* index_points, int count, point x_new);
+
+//struct added... is it allowed..?
+class DistanceFunc
+{
+    DistanceFunc(const point& _p) : p(_p) {}
+
+    bool operator()(const rrtTree::node& a, const rrtTree::node& b) const
+    {
+        return distance(a.location, p) < distance(b.location, p);
+    }
+
+    private:
+        point p;
+
+}
