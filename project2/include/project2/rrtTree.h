@@ -19,16 +19,17 @@ struct node
     point rand;
     point location;
     int idx_parent;
-    double dist;
     double alpha;
     double d;
+    double cost;
+    double dist;
 };
 
 struct nodeDist
 {
     node temp_node;
     double dist;
-    traj trash;
+    traj x_new;
 };
 
 class rrtTree
@@ -49,11 +50,12 @@ private:
     int nearestNeighbor(point x_rand, double MaxStep);
     int nearestNeighbor(point x_rand);
     //added KnearestNeighbors
-    int KnearestNeighbors(int *out, point x_new, int k, double MaxStep);
+    int KnearestNeighbors(nodeDist* out, point x_new, int k, double MaxStep);
     bool isCollision(point x1, point x2, double d, double R);
     point randomState(double x_max, double x_min, double y_max, double y_min);
     int randompath(double *out, point x_near, point x_rand, double MaxStep);
-    int reconnect(point x_new, int & idx_near, double MaxStep);
+    double reconnect(point x_new, int & idx_near, double MaxStep, traj& x_new_traj);
+    int alpha_path_gen(double *out, point x_near, point x_rand);
 
 public:
     rrtTree();
@@ -70,4 +72,4 @@ public:
 double distance(point p1, point p2);
 double random_gen(double min_val, double max_val);
 bool compare(nodeDist a, nodeDist b);
-void sortByDistance(std::vector<nodeDist> index_points, int count);
+void sortByDistance(std::vector<nodeDist>& index_points, int count);

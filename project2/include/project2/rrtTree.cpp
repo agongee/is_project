@@ -34,7 +34,7 @@ rrtTree::rrtTree(point x_init, point x_goal) {
     root->rand = x_init;
     root->alpha = 0;
     root->d = 0;
-    root->dist = 0;
+    root->cost = 0;
 }
 
 rrtTree::~rrtTree(){
@@ -61,6 +61,7 @@ rrtTree::rrtTree(point x_init, point x_goal, cv::Mat map, double map_origin_x, d
     root->idx_parent = NULL;
     root->location = x_init;
     root->rand = x_init;
+    root->cost = 0;
 }
 
 cv::Mat rrtTree::addMargin(cv::Mat map, int margin) {
@@ -213,14 +214,12 @@ void rrtTree::addVertexStar(point x_new, point x_rand, int idx_near, double cost
 
     // add new vertex to tree
     // tree is an array of the node
-
     if (this->count == MAX_TABLE){
         std::cout << "error: Full Table" << std::endl;
         return;
     }
 
     node *new_node = new node;
-
     new_node->location = x_new;
     new_node->rand = x_rand;
     new_node->idx_parent = idx_near;
@@ -228,8 +227,7 @@ void rrtTree::addVertexStar(point x_new, point x_rand, int idx_near, double cost
     new_node->d = d;
     new_node->idx = this->count;	
     this->count++;
-
-    new_node->dist = cost;
+    new_node->cost = cost;
 
     ptrTable[new_node->idx] = new_node;
     
@@ -283,10 +281,16 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
         }
         if (invalid) continue;
         point x_new = {out[0], out[1], out[2]};
-        double cost = this->reconnect(x_new, idx_near, MaxStep);
-        this->addVertexStar(x_new, x_rand, idx_near, cost, out[3], out[4]);
+        traj x_new_traj_fix;
+        // printf("reconnect\n");
+        double cost = this->reconnect(x_new, idx_near, MaxStep, x_new_traj_fix);
+        // printf("x_new_traj_fix: %f, %f\n", x_new_traj_fix.x, x_new_traj_fix.y);
+        // printf("reconnect return value: %f\n", cost);
+        // printf("addvertexstar\n");
+        this->addVertexStar(x_new, x_rand, idx_near, cost, x_new_traj_fix.alpha, x_new_traj_fix.d);
 
         // step 4
+        // printf("step4\n");
         //this->addVertex(x_new, x_rand, idx_near, out[3], out[4]);
         //it++;
 
@@ -306,7 +310,7 @@ int rrtTree::generateRRT(double x_max, double x_min, double y_max, double y_min,
 
     if (it == K){
         printf("Sadly... \n");
-        this->visualizeTree();
+        // this->visualizeTree();
         return 0;
     }
 
@@ -436,7 +440,7 @@ int rrtTree::nearestNeighbor(point x_rand) {
 
 }
 
-int rrtTree::KnearestNeighbors(int* out, point x_new, int k, double MaxStep){
+int rrtTree::KnearestNeighbors(nodeDist* out, point x_new, int k, double MaxStep){
     /*
     out: array of k_nearest indexes
     x_new: target point (found by nearestneighbor)
@@ -448,38 +452,59 @@ int rrtTree::KnearestNeighbors(int* out, point x_new, int k, double MaxStep){
     */
     std::vector<nodeDist> node_array;
     int itr_count = 0;
-    double trash[5];
+    double trash[2];
+    int valid = 0;
 
     for (int i = 0; i < this->count; i++){
         if (this->ptrTable[i] == NULL) continue;
         if (itr_count < k){
-            int invalid = randompath(trash, this->ptrTable[i]->location, x_new, MaxStep);
-            if (invalid) continue;
+            valid = this->alpha_path_gen(trash, this->ptrTable[i]->location, x_new);
+            for (int validctr = 0; validctr < 50; validctr++){
+                if (valid) break;
+                valid = this->alpha_path_gen(trash, this->ptrTable[i]->location, x_new);
+            }
+            if (!valid) continue;
             nodeDist temp_nodedist;
             temp_nodedist.temp_node = *(this->ptrTable[i]);
             temp_nodedist.dist = distance(this->ptrTable[i]->location, x_new);
+            temp_nodedist.x_new.x = x_new.x;
+            temp_nodedist.x_new.y = x_new.y;
+            temp_nodedist.x_new.th = x_new.th;
+            temp_nodedist.x_new.d = trash[0];
+            temp_nodedist.x_new.alpha = trash[1];
             node_array.push_back(temp_nodedist);
             itr_count++;
         }
         else {
+            valid = 0;
             double temp_dist = distance(this->ptrTable[i]->location, x_new);
-            printf("itr_count: %d\n", itr_count);
+            // printf("%f, %f\n", node_array.back().temp_node.location.x, node_array.back().temp_node.location.y);
             if (temp_dist < node_array.back().dist) {
-                int invalid = randompath(trash, this->ptrTable[i]->location, x_new, MaxStep);
-                if (invalid) continue;
+                valid = this->alpha_path_gen(trash, this->ptrTable[i]->location, x_new);
+                for (int validctr = 0; validctr < 50; validctr++){
+                    if (valid) break;
+                    valid = this->alpha_path_gen(trash, this->ptrTable[i]->location, x_new);
+                }
+                if (!valid) continue;
                 node_array.pop_back();
                 nodeDist temp_nodedist;
                 temp_nodedist.temp_node = *(this->ptrTable[i]);
                 temp_nodedist.dist = temp_dist;
+                temp_nodedist.x_new.x = x_new.x;
+                temp_nodedist.x_new.y = x_new.y;
+                temp_nodedist.x_new.th = x_new.th;
+                temp_nodedist.x_new.d = trash[0];
+                temp_nodedist.x_new.alpha = trash[1];
                 node_array.push_back(temp_nodedist);
             }
         }
         sortByDistance(node_array, itr_count);
     }
-
+    // printf("queue entries\n");
     for (int i = 0; i< k; i++){
-        if (i > itr_count) out[i] = NULL;
-        out[i] = node_array[i].temp_node.idx;
+        if (i >= itr_count) break;
+        out[i] = node_array[i];
+        // printf("(%f, %f), distance: %f\n", node_array[i].temp_node.location.x, node_array[i].temp_node.location.y, distance(node_array[i].temp_node.location, x_new));
     }
     return itr_count;
 }
@@ -559,13 +584,6 @@ bool rrtTree::isCollision(point x1, point x2, double d, double R) {
 
     // whether path x1->x2 (not straight line, but 'path') crosses the obstacle
     // refer to page5(pdf) for the names of variables
-
-    // bool direction = true;
-    // if (R < 0){
-    //     direction = false;
-    // }
-
-    // R = abs(R);
 
     double x_c = x1.x - R * sin(x1.th);
     double y_c = x1.y + R * cos(x1.th);
@@ -657,30 +675,30 @@ std::vector<traj> rrtTree::backtracking_traj(){
     
 }
 
-int rrtTree::reconnect(point x_new, int & idx_near, double MaxStep) {
+double rrtTree::reconnect(point x_new, int & idx_near, double MaxStep, traj& x_new_traj) {
 
     int K = 10;
-    int near_idx [10];
-    int max_iter = this->KnearestNeighbors(near_idx, x_new, K, MaxStep);
+    nodeDist near_nodedist [10];
+    // printf("knearestneighbors\n");
+    int max_iter = this->KnearestNeighbors(near_nodedist, x_new, K, MaxStep);
 
     double min_dist = -1;
     int min_idx = -1;
-
+    // printf("trajmake\n");
     for (int i = 0; i < max_iter; i++){
-        int curr_idx = near_idx[i];
-        double dist = this->ptrTable[curr_idx]->dist + distance(x_new, this->ptrTable[curr_idx]->location);
+        nodeDist curr_nodedist = near_nodedist[i];
+        double dist = this->ptrTable[curr_nodedist.temp_node.idx]->cost + distance(x_new, this->ptrTable[curr_nodedist.temp_node.idx]->location);
 
         if (min_idx < 0 || min_dist > dist){
             min_dist = dist;
-            min_idx = near_idx[i];
+            min_idx = near_nodedist[i].temp_node.idx;
+            x_new_traj = near_nodedist[i].x_new;
         }
-
     }
 
     idx_near = min_idx;
-
+    // printf("min_dist: %f\n", min_dist);
     return min_dist;
-    
 }
 
 
@@ -705,10 +723,30 @@ bool compare(nodeDist a, nodeDist b){
     return a.dist < b.dist;
 }
 
-void sortByDistance(std::vector<nodeDist> index_points, int count){
+void sortByDistance(std::vector<nodeDist>& index_points, int count){
     std::sort(index_points.begin(), index_points.end(), compare);
 }
 
-int alpha_path_gen(){
-
+int rrtTree::alpha_path_gen(double *out, point x_near, point x_rand){
+    /*
+    returns 1 if path generation suceeds
+    out returns [alpha, d] for x_rand
+    */
+    double alpha = random_gen(0.01, max_alpha);
+    // double R = distance(x_near, x_rand)/(2*sin(alpha/2));
+    double R = L/tan(alpha);
+    double d = R * alpha;
+    bool positive_alpha = rrtTree::isCollision(x_near, x_rand, d, R);
+    bool negative_alpha = rrtTree::isCollision(x_near, x_rand, d, -R);
+    if (!positive_alpha){
+        out[0] = d;
+        out[1] = alpha;
+        return 1;
+    }
+    if (!negative_alpha){
+        out[0] = d;
+        out[1] = -alpha;
+        return 1;
+    }
+    return 0;
 }
