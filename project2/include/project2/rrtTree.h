@@ -36,7 +36,7 @@ class rrtTree
 {
 private:
     node* root;
-    int count; // currently, i'm using it as "number of node in rrtTree"
+     // currently, i'm using it as "number of node in rrtTree"
     point x_init, x_goal;
     cv::Mat map;
     cv::Mat map_original;
@@ -46,18 +46,21 @@ private:
     
     cv::Mat addMargin(cv::Mat map, int margin);
     void addVertex(point x_new, point x_rand, int idx_near, double alpha, double d);
-    void addVertexStar(point x_new, point x_rand, int idx_near, double cost, double alpha, double d);
+    //void addVertexStar(point x_new, point x_rand, int idx_near, double cost, double alpha, double d);
+    void addVertexStar(point x_new, point x_rand, int idx_near, double cost);
     int nearestNeighbor(point x_rand, double MaxStep);
     int nearestNeighbor(point x_rand);
     //added KnearestNeighbors
     int KnearestNeighbors(nodeDist* out, point x_new, int k, double MaxStep);
     bool isCollision(point x1, point x2, double d, double R);
+    bool isCollisionLinear(point x1, point x2);
     point randomState(double x_max, double x_min, double y_max, double y_min);
     int randompath(double *out, point x_near, point x_rand, double MaxStep);
     double reconnect(point x_new, int & idx_near, double MaxStep, traj& x_new_traj);
     int alpha_path_gen(double *out, point x_near, point x_rand);
 
 public:
+    int count;
     rrtTree();
     rrtTree(point x_init, point x_goal, cv::Mat map, double map_origin_x, double map_origin_y, double res, int margin);
     rrtTree(point x_init, point x_goal);

@@ -64,6 +64,7 @@
         "cfenv": "cpp",
         "cinttypes": "cpp",
         "typeindex": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "*.ipp": "cpp"
     }
 }
