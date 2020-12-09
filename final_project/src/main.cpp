@@ -31,7 +31,7 @@ double world_y_max;
 
 //parameters we should adjust : K, margin, MaxStep
 int margin = 7;
-int K = 1000;
+int K = 500;
 double MaxStep = 1.5;
 int waypoint_margin = 24;
 
@@ -105,12 +105,12 @@ int main(int argc, char** argv){
             state = PATH_PLANNING;
         } break;
 
-        case PATH_PLANNING:{
+        case PATH_PLANNING: {
             
             // Set Way Points
             set_waypoints();
             printf("Set way points\n");
-
+            
             // double RES = 2;
             // cv::Mat map_margin = map.clone();
             // int xSize = map_margin.cols;
@@ -148,7 +148,7 @@ int main(int argc, char** argv){
             // cv::imshow("waypoints", map_copy);
             // cv::waitKey(0);
             // printf("map size: %d * %d\n", map_copy.rows, map_copy.cols);
-
+            
             // RRT
             generate_path_RRT();
             printf("Generate RRT\n");
@@ -190,7 +190,7 @@ int main(int argc, char** argv){
             cv::namedWindow("path_RRT");
             cv::imshow("path_RRT", map_copy);
             cv::waitKey(0);
-
+            
             look_ahead_idx = 0;
             current_goal.x = path_RRT[look_ahead_idx].x;
             current_goal.y = path_RRT[look_ahead_idx].y;
@@ -201,6 +201,7 @@ int main(int argc, char** argv){
 
             printf("Initialize ROBOT\n");
             state = RUNNING;
+
         }
 
         case RUNNING: {
@@ -277,37 +278,42 @@ void callback_state(geometry_msgs::PoseWithCovarianceStampedConstPtr msgs){
 
 void set_waypoints()
 {
-    point waypoint_candid[7];
+    point waypoint_candid[9];
 
     // Starting point. (Fixed)
     waypoint_candid[0].x = -3.5;
     waypoint_candid[0].y = 8.5;
 
 
+
     //TODO 2
     // Set your own waypoints.
     // The car should turn around the outer track once, and come back to the starting point.
     // This is an example.
-    waypoint_candid[1].x = 2.2;
+    waypoint_candid[1].x = 3.5;
     waypoint_candid[1].y = 8.5;
-    waypoint_candid[2].x = 2.5;
-    waypoint_candid[2].y = -8.5;
-    waypoint_candid[3].x = -2.5;
-    waypoint_candid[3].y = -8.0;
+    waypoint_candid[2].x = 3.8;
+    waypoint_candid[2].y = 0;
+    waypoint_candid[3].x = 3.5;
+    waypoint_candid[3].y = -8.5;
     waypoint_candid[4].x = -3.5;
-    waypoint_candid[4].y = 8.5;
+    waypoint_candid[4].y = -8.0;
+    waypoint_candid[5].x = -3.8;
+    waypoint_candid[5].y = 0;
+    waypoint_candid[6].x = -3.5;
+    waypoint_candid[6].y = 8.5;
 
 
     // Waypoints for arbitrary goal points.
     // TA will change this part before scoring.
     // This is an example.
-    waypoint_candid[5].x = 1.5;
-    waypoint_candid[5].y = 1.5;
-    waypoint_candid[6].x = -2;
-    waypoint_candid[6].y = -9.0;
+    waypoint_candid[7].x = 1.5;
+    waypoint_candid[7].y = 1.5;
+    waypoint_candid[8].x = -2;
+    waypoint_candid[8].y = -9.0;
 
-    int order[] = {0,1,2,3,4,5,6};
-    int order_size = 7;
+    int order[] = {0,1,2,3,4,5,6, 7, 8};
+    int order_size = 9;
 
     for(int i = 0; i < order_size; i++){
         waypoints.push_back(waypoint_candid[order[i]]);
@@ -348,32 +354,31 @@ void generate_path_RRT()
         //printf("x_init: (%f, %f)\n", x_init.x, x_init.y);
         int valid = tree->generateRRT(world_x_max, world_x_min, world_y_max, world_y_min, K, MaxStep);
         while (valid == 0){
-            // count++;
+            count++;
             double max_alpha = 0.4;
             delete tree;
-            // if (i > 0) {
-            //     if (count <= 10){
-            //         x_init.th = random_gen(prev_th2 - max_alpha, prev_th2 + max_alpha);
-            //     }
-            //     else if (count > 10){
-            //         x_init.th = random_gen(prev_th - max_alpha, prev_th + max_alpha);
-            //     }
-            //     if (count == 20){
-            //         count = 0;
-            //     }
-            // }
+            if (i > 0) {
+                if (count <= 10){
+                    x_init.th = random_gen(prev_th2 - max_alpha, prev_th2 + max_alpha);
+                }
+                else if (count > 10){
+                    x_init.th = random_gen(prev_th - max_alpha, prev_th + max_alpha);
+                }
+                if (count == 20){
+                    count = 0;
+                }
+            }
             tree = new rrtTree(x_init, x_goal, map, map_origin_x, map_origin_y, res, margin);
             valid = tree->generateRRT(world_x_max, world_x_min, world_y_max, world_y_min, K, MaxStep);
         }
-        // tree->visualizeTree();
+        tree->visualizeTree();
         printf("%d th generate\n", i);
 
         // Check plz
         std::vector<traj> temp_path = tree->backtracking_traj();
         printf("%d th backtrack\n", i);
         
-        tree->visualizeTree(temp_path);
-        printf("visualize tree\n");
+        // tree->visualizeTree(temp_path);
         // tree->visualizeTree();
         // prev_th = atan2(x_goal.y - x_init.y, x_goal.x - x_init.x);
         
