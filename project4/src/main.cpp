@@ -116,43 +116,43 @@ int main(int argc, char** argv){
             set_waypoints();
             printf("Set way points\n");
             
-            double RES = 2;
-            cv::Mat map_margin = map.clone();
-            int xSize = map_margin.cols;
-            int ySize = map_margin.rows;
-            for (int i = 0; i < ySize; i++) {
-                for (int j = 0; j < xSize; j++) {
-                    if (map.at<uchar>(i, j) < 125) {
-                        for (int k = i - margin; k <= i + margin; k++) {
-                            for (int l = j - margin; l <= j + margin; l++) {
-                                if (k >= 0 && l >= 0 && k < ySize && l < xSize) {
-                                    map_margin.at<uchar>(k, l) = 0;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            cv::Mat map_copy = map_margin.clone();
-            cv::cvtColor(map_copy, map_copy, CV_GRAY2BGR);
-            cv::resize(map_copy, map_copy, cv::Size(), 2, 2);
-            for(int i = 0; i < waypoints.size(); i++){
-                std::vector<cv::Scalar> colors;
-                colors.push_back(cv::Scalar(0, 0, 255));
-                colors.push_back(cv::Scalar(0, 128, 255));
-                colors.push_back(cv::Scalar(0, 255, 255));
-                colors.push_back(cv::Scalar(0, 255, 0));
-                colors.push_back(cv::Scalar(255, 0, 0));
-                colors.push_back(cv::Scalar(255, 0, 128));
-                printf("waypoints[%d]: (%f, %f)\n", i, waypoints[i].x, waypoints[i].y);
-                int y = RES*(waypoints[i].x/res + map_origin_x);
-                int x = RES*(waypoints[i].y/res + map_origin_y);
-                cv::circle(map_copy, cv::Point(x, y), 5, colors[i % colors.size()], cv::FILLED, 8);
-            }
-            cv::namedWindow("waypoints");
-            cv::imshow("waypoints", map_copy);
-            cv::waitKey(0);
-            printf("map size: %d * %d\n", map_copy.rows, map_copy.cols);
+            // double RES = 2;
+            // cv::Mat map_margin = map.clone();
+            // int xSize = map_margin.cols;
+            // int ySize = map_margin.rows;
+            // for (int i = 0; i < ySize; i++) {
+            //     for (int j = 0; j < xSize; j++) {
+            //         if (map.at<uchar>(i, j) < 125) {
+            //             for (int k = i - margin; k <= i + margin; k++) {
+            //                 for (int l = j - margin; l <= j + margin; l++) {
+            //                     if (k >= 0 && l >= 0 && k < ySize && l < xSize) {
+            //                         map_margin.at<uchar>(k, l) = 0;
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
+            // cv::Mat map_copy = map_margin.clone();
+            // cv::cvtColor(map_copy, map_copy, CV_GRAY2BGR);
+            // cv::resize(map_copy, map_copy, cv::Size(), 2, 2);
+            // for(int i = 0; i < waypoints.size(); i++){
+            //     std::vector<cv::Scalar> colors;
+            //     colors.push_back(cv::Scalar(0, 0, 255));
+            //     colors.push_back(cv::Scalar(0, 128, 255));
+            //     colors.push_back(cv::Scalar(0, 255, 255));
+            //     colors.push_back(cv::Scalar(0, 255, 0));
+            //     colors.push_back(cv::Scalar(255, 0, 0));
+            //     colors.push_back(cv::Scalar(255, 0, 128));
+            //     printf("waypoints[%d]: (%f, %f)\n", i, waypoints[i].x, waypoints[i].y);
+            //     int y = RES*(waypoints[i].x/res + map_origin_x);
+            //     int x = RES*(waypoints[i].y/res + map_origin_y);
+            //     cv::circle(map_copy, cv::Point(x, y), 5, colors[i % colors.size()], cv::FILLED, 8);
+            // }
+            // cv::namedWindow("waypoints");
+            // cv::imshow("waypoints", map_copy);
+            // cv::waitKey(0);
+            // printf("map size: %d * %d\n", map_copy.rows, map_copy.cols);
             
             // RRT
             generate_path_RRT();
@@ -426,6 +426,7 @@ void generate_path_RRT()
             tree = new rrtTree(x_init, x_goal, map, map_origin_x, map_origin_y, res, margin);
             valid = tree->generateRRT(world_x_max, world_x_min, world_y_max, world_y_min, K, MaxStep);
         }
+        tree->visualizeTree();
         printf("%d th generate\n", i);
 
         // Check plz
